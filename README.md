@@ -2,7 +2,7 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 ---
 
-If you are interested in this template - let me know - tweet me [@tuchk4](https://twitter.com/tuchk4) or [file an issue](https://github.com/tuchk4/craft-redux/issues/new) here.
+If you are interested in this template - let me know - tweet me [@StephQuery](https://twitter.com/StephQuery) or [file an issue](https://github.com/steph-query/craft-redux/issues/new) here.
 
 I will add more features and tests.
 
