@@ -2,15 +2,9 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 ---
 
-If you are interested in this template - let me know - tweet me [@StephQuery](https://twitter.com/StephQuery) or [file an issue](https://github.com/steph-query/craft-redux/issues/new) here.
-
-I will add more features and tests.
-
----
-
 ```
 npm i -g craftool
-craft MyAppRedux https://github.com/tuchk4/craft-redux/archive/master.zip
+craft {{ AppName }} https://github.com/steph-query/craft-redux/archive/master.zip
 ```
 
 ## General Resources
@@ -35,12 +29,6 @@ Please read official Create React App guide and don't try to customize configs b
 > [Displaying Map in state #124](https://github.com/zalmoxisus/redux-devtools-extension/issues/124)
 
 >  Import [`set.prototype.tojson`](https://www.npmjs.com/package/set.prototype.tojson) and [`map.prototype.tojson`](https://www.npmjs.com/package/map.prototype.tojson) for correct view of [`Map`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map) and [`Set`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set) structures at Redux Chrome extension.
-
----
-
-App | Redux Chrome dev tools
-----|---
-![CRAFT Redux Screenshot](https://monosnap.com/file/X5rD3u7mubxRHpufXzIACNhzk5zVEs.png) | ![Alt text](https://monosnap.com/file/UWm0dSNy1zhO1dfey7kHtiezhPaZKk.png)
 
 ### `npm start`
 
@@ -79,7 +67,7 @@ We need this script because we can not run this
 ```
 {
   "scripts": {
-    "test": "node -r dotenv/config ./node_modules/.bin/react-scripts test dotenv_config_path=development.env",    
+    "test": "node -r dotenv/config ./node_modules/.bin/react-scripts test dotenv_config_path=development.env",
   }
 }
 ```
