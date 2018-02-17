@@ -1,5 +1,38 @@
 This project was bootstrapped with [Create React App](https://github.com/facebookincubator/create-react-app) and [CRAFT](https://github.com/stoyan/craft).
 
+## Tweaks I made to the fork:
+
+- Added `styled-components` to the `package.json`, because I never want to be without it again.
+- Added a the directory `src/utils` to keep API and Style files.
+
+### A bit about styles
+
+With `styled-components`, you never really need to use stylesheets again. You can also get the benefits of SASS and CSS variables by storing them in an object, where they can be globally updated. This object lives in `src/utils/styles/index.js`, and makes for incredibly easy theme changes.
+
+Consider the following example:
+```javascript
+// styles/index.js:
+export default const style_vars = {
+  blue: 'rgb(29,31,177)',
+  blue2: 'rgb(162,217,218)'
+}
+```
+
+```javascript
+// src/components/someComponent.js
+import styled from 'styled-components';
+import style_vars from '../utils/styles';
+
+const StyledDiv = styled.div`
+  color: ${style_vars.blue};
+  background-color: ${style_vars.blu2};
+`;
+
+// Your compenent renders StyledDiv in its render method
+```
+
+You can then swap the colors to invert your color scheme, though you may want to do this with the theme feature built into styled-components.
+
 ---
 
 ```
