@@ -11,7 +11,7 @@
 #
 # Happy Coding!
 
-service: ${env:SLS_PROJECT}
+service: template
 
 # You can pin your service to only deploy with a specific Serverless version
 # Check out our docs for more details
@@ -24,7 +24,7 @@ provider:
     prod: {}
     test: {}
     dev: {}
-  region: ${env:SLS_REGION}
+  region: us-east-1
 
 custom:
   S3_BUCKET: DEFAULT_BUCKET
@@ -114,5 +114,5 @@ functions:
 resources:
   Resources:
     CodeBuild: ${file(codebuild.yml)}
-    CodePipeline: ${file(codebuild.yml)}
+    #CodePipeline: ${file(codebuild.yml)}
 
