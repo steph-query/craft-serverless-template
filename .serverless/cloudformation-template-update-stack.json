@@ -1,0 +1,496 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "The AWS CloudFormation template for this Serverless application",
+  "Resources": {
+    "ServerlessDeploymentBucket": {
+      "Type": "AWS::S3::Bucket"
+    },
+    "DeployUnderscorespaLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/DeploytemplateLambda"
+      }
+    },
+    "IamRoleLambdaExecution": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [
+                  "lambda.amazonaws.com"
+                ]
+              },
+              "Action": [
+                "sts:AssumeRole"
+              ]
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": {
+              "Fn::Join": [
+                "-",
+                [
+                  "dev",
+                  "myTemplateService",
+                  "lambda"
+                ]
+              ]
+            },
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:CreateLogStream"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::Sub": "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/DeploytemplateLambda:*"
+                    }
+                  ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:PutLogEvents"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::Sub": "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/DeploytemplateLambda:*:*"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "Path": "/",
+        "RoleName": {
+          "Fn::Join": [
+            "-",
+            [
+              "myTemplateService",
+              "dev",
+              {
+                "Fn::Sub": "${AWS::Region}"
+              },
+              "lambdaRole"
+            ]
+          ]
+        }
+      }
+    },
+    "DeployUnderscorespaLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/myTemplateService/dev/1519079718542-2018-02-19T22:35:18.542Z/myTemplateService.zip"
+        },
+        "FunctionName": "DeploytemplateLambda",
+        "Handler": "services/deploy_spa.lambda_handler",
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        },
+        "Runtime": "python2.7",
+        "Timeout": 6,
+        "Environment": {
+          "Variables": {
+            "S3_BUCKET": "s3TestHostBucket",
+            "S3_KEY": "test"
+          }
+        }
+      },
+      "DependsOn": [
+        "DeployUnderscorespaLogGroup",
+        "IamRoleLambdaExecution"
+      ]
+    },
+    "DeployUnderscorespaLambdaVersion0OtjkPCdQPhlmsyp5uArNluJmlS3kmOiSg7LnB1LMk": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "DeployUnderscorespaLambdaFunction"
+        },
+        "CodeSha256": "lCYK9bvungtD9NJB/tyQkq3Hz02i9D0HhK0HWh8rnfw="
+      }
+    },
+    "CodeBuild": {
+      "Type": "AWS::CodeBuild::Project",
+      "Properties": {
+        "Name": "templateCodeBuild",
+        "ServiceRole": "templateCodeBuildRole",
+        "Artifacts": {
+          "Type": "s3",
+          "Location": "template.build",
+          "Name": "template.zip",
+          "Description": "This codebuild deploys template!"
+        },
+        "Environment": {
+          "Image": "aws/codebuild/aws/codebuild/nodejs:7.0.0",
+          "ComputeType": "BUILD_GENERAL1_SMALL"
+        },
+        "Source": {
+          "Auth": {
+            "Type": "OAUTH",
+            "Resource": {
+              "Type": "AWS::IAM::User",
+              "Properties": {
+                "Policies": [
+                  {
+                    "PolicyName": "templateCodeBuild-github-sns-role",
+                    "PolicyDocument": {
+                      "Statement": [
+                        {
+                          "Effect": "Allow",
+                          "Action": "sns:Publish",
+                          "Resource": {
+                            "Ref": "GithubEventSNSTopic"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "Location": "https://github.com/steph-query/craft-serverless"
+          },
+          "Type": "GITHUB"
+        },
+        "TimeoutInMinutes": 15
+      }
+    },
+    "BuildBucket": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "BucketName": "template.build"
+      }
+    },
+    "HostBucket": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "BucketName": "s3TestHostBucket"
+      }
+    },
+    "GithubEventSNSTopic": {
+      "Type": "AWS::SNS::Topic",
+      "Properties": {
+        "DisplayName": "template-GithubEvents"
+      }
+    },
+    "GithubIAMUser": {
+      "Type": "AWS::IAM::User",
+      "Properties": {
+        "Policies": [
+          {
+            "PolicyName": "templateCodeBuild-github-sns-role",
+            "PolicyDocument": {
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": "sns:Publish",
+                  "Resource": {
+                    "Ref": "GithubEventSNSTopic"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "GithubIAMUserAccessKey": {
+      "Type": "AWS::IAM::AccessKey",
+      "Properties": {
+        "UserName": {
+          "Ref": "GithubIAMUser"
+        }
+      }
+    },
+    "GithubWebhookCustomResourceRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": "#{CodeBuildProjectName}-github-webhook-lambda-execution-role",
+            "PolicyDocument": {
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:CreateLogGroup",
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents"
+                  ],
+                  "Resource": "arn:aws:logs:*:*:*"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "GithubWebhookCustomResource": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Handler": "index.handler",
+        "Role": {
+          "Fn::GetAtt": [
+            "GithubWebhookCustomResourceRole",
+            "Arn"
+          ]
+        },
+        "Code": "./services/js/githubWebhookResources",
+        "Runtime": "nodejs6.10",
+        "Timeout": 30,
+        "Environment": {
+          "Variables": {
+            "GITHUB_TOKEN": "88a9efb3cfaa2f573432c4a5e272e38b26875f30",
+            "GITHUB_REPOSITORY_URL": "https://github.com/steph-query/craft-serverless",
+            "GITHUB_TARGET_RESOURCE": "push",
+            "SNS_ACCESS_KEY_ID": {
+              "Ref": "GithubIAMUserAccessKey"
+            },
+            "SNS_SECRET_ACCESS_KEY": {
+              "Fn::GetAtt": [
+                "GithubIAMUserAccessKey",
+                "SecretAccessKey"
+              ]
+            },
+            "SNS_REGION": {
+              "Ref": "AWS::Region"
+            },
+            "SNS_TOPIC": {
+              "Ref": "GithubEventSNSTopic"
+            }
+          }
+        }
+      }
+    },
+    "GithubWebhook": {
+      "Type": "Custom::GithubWebhook",
+      "Properties": {
+        "ServiceToken": {
+          "Fn::GetAtt": [
+            "GithubWebhookCustomResource",
+            "Arn"
+          ]
+        },
+        "GITHUB_TOKEN": "88a9efb3cfaa2f573432c4a5e272e38b26875f30",
+        "GITHUB_REPOSITORY_URL": "https://github.com/steph-query/craft-serverless",
+        "GITHUB_TARGET_RESOURCE": "push",
+        "SNS_ACCESS_KEY_ID": {
+          "Ref": "GithubIAMUserAccessKey"
+        },
+        "SNS_SECRET_ACCESS_KEY": {
+          "Fn::GetAtt": [
+            "GithubIAMUserAccessKey",
+            "SecretAccessKey"
+          ]
+        },
+        "SNS_REGION": {
+          "Ref": "AWS::Region"
+        },
+        "SNS_TOPIC": {
+          "Ref": "GithubEventSNSTopic"
+        }
+      }
+    },
+    "BuildStateNotifier": {
+      "Type": "AWS::Serverless::Function",
+      "Properties": {
+        "Role": {
+          "Fn::GetAtt": [
+            "LambdaExecutionRole",
+            "Arn"
+          ]
+        },
+        "Handler": "index.handler",
+        "Runtime": "nodejs6.10",
+        "CodeUri": "./src/functions/build-state-notifier",
+        "Timeout": 10,
+        "MemorySize": 128,
+        "Environment": {
+          "Variables": {
+            "CODEBUILD_PROJECT_REGION": "us-east-1",
+            "GITHUB_TOKEN": "88a9efb3cfaa2f573432c4a5e272e38b26875f30",
+            "GITHUB_REPOSITORY_URL": "https://github.com/steph-query/craft-serverless"
+          }
+        },
+        "Events": {
+          "CodeBuildStatusChange": {
+            "Type": "CloudWatchEvent",
+            "Properties": {
+              "Pattern": {
+                "source": [
+                  "aws.codebuild"
+                ],
+                "detail-type": [
+                  "CodeBuild Build State Change"
+                ],
+                "detail": {
+                  "project-name": [
+                    "templateCodeBuild"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "WebhookHandlerExecutionRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": "templateCodeBuild-webhook-handler-execution-role",
+            "PolicyDocument": {
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:CreateLogGroup",
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents"
+                  ],
+                  "Resource": "arn:aws:logs:*:*:*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "codebuild:StartBuild"
+                  ],
+                  "Resource": "arn:aws:codebuild:#{AWS::Region}:#{AWS::AccountId}:project/templateCodeBuild"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "GithubWebhookHandler": {
+      "Type": "AWS::Serverless::Function",
+      "Properties": {
+        "Role": {
+          "Fn::GetAtt": [
+            "WebhookHandlerExecutionRole",
+            "Arn"
+          ]
+        },
+        "Handler": "index.handler",
+        "Runtime": "nodejs6.10",
+        "CodeUri": "./src/functions/github-webhook-handler",
+        "Timeout": 10,
+        "MemorySize": 128,
+        "Events": {
+          "WebhookReceive": {
+            "Type": "SNS",
+            "Properties": {
+              "Topic": {
+                "Ref": "GithubEventSNSTopic"
+              }
+            }
+          }
+        },
+        "Environment": {
+          "Variables": {
+            "DO_NOT_RUN": false,
+            "CODEBUILD_PROJECT_REGION": "us-east-1",
+            "CODEBUILD_PROJECT_NAME": "templateCodeBuild",
+            "GITHUB_TOKEN": "88a9efb3cfaa2f573432c4a5e272e38b26875f30",
+            "GITHUB_REPOSITORY_URL": "https://github.com/steph-query/craft-serverless",
+            "GITHUB_TARGET_RESOURCE": "push"
+          }
+        }
+      }
+    },
+    "LambdaExecutionRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": "templateCodeBuild-lambda-execution-role",
+            "PolicyDocument": {
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:CreateLogGroup",
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents"
+                  ],
+                  "Resource": "arn:aws:logs:*:*:*"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  },
+  "Outputs": {
+    "ServerlessDeploymentBucketName": {
+      "Value": {
+        "Ref": "ServerlessDeploymentBucket"
+      }
+    },
+    "DeployUnderscorespaLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "DeployUnderscorespaLambdaVersion0OtjkPCdQPhlmsyp5uArNluJmlS3kmOiSg7LnB1LMk"
+      }
+    }
+  }
+}

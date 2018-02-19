@@ -1,20 +1,19 @@
 Type: "AWS::CodeBuild::Project"
 Properties:
-  Name: "${self:service}CodeBuild"
-  ServiceRole: "${self:service}CodeBuildRole"
+  Name: "${self:custom.serviceName}CodeBuild"
+  ServiceRole: "${self:custom.serviceName}CodeBuildRole"
   Artifacts:
     Type: s3
-    Location: "${self:service}.build"
-    Name: "${self:service}.zip"
-    Description: "This codebuild deploys ${self:service}!"
+    Location: ${self:custom.codeBuildBucketName}
+    Name: "${self:custom.serviceName}.zip"
+    Description: "This codebuild deploys ${self:custom.serviceName}!"
   Environment:
-    Image: "aws/codebuild/${self:custom.codeBuildRuntime}:${self:custom.codeBuildRuntimeVersion}"
+    Image: "aws/codebuild/${self:custom.codeBuildRuntime}/${self:custom.codeBuildRuntimeVersion}"
     ComputeType: BUILD_GENERAL1_SMALL
-    EnvironmentVaribles: ${self:custom.codeBuildEnvironmentVariables}
   Source:
     Auth:
       Type: OAUTH
-      Resource: ${file(roles.yml):GithubIAMUser}
-      Location: ${self:custom.githubRepo}
+      Resource: ${file(github.yml):GithubIAMUser}
+      Location: ${env:GITHUB_REPOSITORY_URL}
     Type: GITHUB
   TimeoutInMinutes: 15

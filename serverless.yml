@@ -1,107 +1,30 @@
-# Welcome to Serverless!
-#
-# This file is the main config file for your service.
-# It's very minimal at this point and uses default values.
-# You can always add more config options for more control.
-# We've included some commented out config examples here.
-# Just uncomment any of them to get that config option.
-#
-# For full config options, check the docs:
-#    docs.serverless.com
-#
-# Happy Coding!
-
-service: template
-
-# You can pin your service to only deploy with a specific Serverless version
-# Check out our docs for more details
-# frameworkVersion: "=X.X.X"
-
+service: myTemplateService
 provider:
   name: aws
   runtime: nodejs6.10
-  stage:
-    prod: {}
-    test: {}
-    dev: {}
+  #stage:
+    #prod: prod
+    #test: test
+    #dev: dev
   region: us-east-1
-
 custom:
-  S3_BUCKET: DEFAULT_BUCKET
-  S3_KEY: DEFAULT_S3_KEY
-  SNS_TOPIC: DEFAULT_SNS_TOPIC
-
-# you can add statements to the Lambda function's IAM Role here
-#  iamRoleStatements:
-#    - Effect: "Allow"
-#      Action:
-#        - "s3:ListBucket"
-#      Resource: { "Fn::Join" : ["", ["arn:aws:s3:::", { "Ref" : "ServerlessDeploymentBucket" } ] ]  }
-#    - Effect: "Allow"
-#      Action:
-#        - "s3:PutObject"
-#      Resource:
-#        Fn::Join:
-#          - ""
-#          - - "arn:aws:s3:::"
-#            - "Ref" : "ServerlessDeploymentBucket"
-#            - "/*"
-
-# you can define service wide environment variables here
-#  environment:
-#    variable1: value1
-
-# you can add packaging information here
-#package:
-#  include:
-#    - include-me.js
-#    - include-me-dir/**
-#  exclude:
-#    - exclude-me.js
-#    - exclude-me-dir/**
-
+  serviceName: template
+  codeBuildRuntime: "aws/codebuild"
+  codeBuildRuntimeVersion: "nodejs:7.0.0"
+  codeBuildBucketName: "${self:custom.serviceName}.build"
+  codeBuildEnvironmentVariables: []
+  hostBucketPath: test
+  hostBucketName: s3TestHostBucket
+plugins:
+  - serverless-pseudo-parameters
 functions:
   deploy_spa:
-    name: Deploy${self:service}Lambda
+    name: Deploy${self:custom.serviceName}Lambda
     handler: services/deploy_spa.lambda_handler
     runtime: python2.7
     environment:
-      S3_BUCKET: ${self:custom.DEFAULT_BUCKET}
-      S3_KEY: ${self:custom.DEFAULT_S3_KEY}
-      SNS_TOPIC: ${self:custom.DEFAULT_SNS_TOPIC}
-
-#    The following are a few example events you can configure
-#    NOTE: Please make sure to change your handler code to work with those events
-#    Check the event documentation for details
-#    events:
-#      - http:
-#          path: users/create
-#          method: get
-#      - s3: ${env:BUCKET}
-#      - schedule: rate(10 minutes)
-#      - sns: greeter-topic
-#      - stream: arn:aws:dynamodb:region:XXXXXX:table/foo/stream/1970-01-01T00:00:00.000
-#      - alexaSkill
-#      - alexaSmartHome: amzn1.ask.skill.xx-xx-xx-xx
-#      - iot:
-#          sql: "SELECT * FROM 'some_topic'"
-#      - cloudwatchEvent:
-#          event:
-#            source:
-#              - "aws.ec2"
-#            detail-type:
-#              - "EC2 Instance State-change Notification"
-#            detail:
-#              state:
-#                - pending
-#      - cloudwatchLog: '/aws/lambda/hello'
-#      - cognitoUserPool:
-#          pool: MyUserPool
-#          trigger: PreSignUp
-
-#    Define function environment variables here
-#    environment:
-#      variable2: value2
+      S3_BUCKET: ${self:custom.hostBucketName}
+      S3_KEY: ${self:custom.hostBucketPath}
 
 # you can add CloudFormation resource templates here
 # From the docs: https://serverless.com/framework/docs/providers/aws/guide/resources/
@@ -114,5 +37,34 @@ functions:
 resources:
   Resources:
     CodeBuild: ${file(codebuild.yml)}
-    #CodePipeline: ${file(codebuild.yml)}
+    BuildBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:custom.codeBuildBucketName}
+    HostBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:custom.hostBucketName}
+    GithubEventSNSTopic: ${file(github.yml):GithubEventSNSTopic}
+    GithubIAMUser: ${file(github.yml):GithubIAMUser}
+    GithubIAMUserAccessKey: ${file(github.yml):GithubIAMUserAccessKey}
+    GithubWebhookCustomResourceRole: ${file(github.yml):GithubWebhookCustomResourceRole}
+    GithubWebhookCustomResource: ${file(github.yml):GithubWebhookCustomResource}
+    GithubWebhook: ${file(github.yml):GithubWebhook}
+    BuildStateNotifier: ${file(github.yml):BuildStateNotifier}
+    WebhookHandlerExecutionRole: ${file(github.yml):WebhookHandlerExecutionRole}
+    GithubWebhookHandler: ${file(github.yml):GithubWebhookHandler}
+    LambdaExecutionRole: ${file(github.yml):LambdaExecutionRole}
 
+  #CodePipeline: ${file(codebuild.yml)}
+  #Outputs:
+    #GithubEventSNSTopicArn:
+      #Value:
+        #"Fn::GetAtt": [GithubEventSNSTopic, Arn]
+      #Export:
+        #Name: ${self:custom.serviceName}:GithubEventSNSTopicArn
+    #GithubIAMUserName:
+      #Value:
+        #Ref: GithubIAMUser
+      #Export:
+        #Name: ${self:custom.serviceName}:GithubIAMUserName

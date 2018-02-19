@@ -1,0 +1,195 @@
+GithubEventSNSTopic:
+  Type: "AWS::SNS::Topic"
+  Properties:
+    DisplayName: "${self:custom.serviceName}-GithubEvents"
+GithubIAMUser:
+  Type: "AWS::IAM::User"
+  Properties:
+    Policies:
+      - PolicyName: "${env:CODEBUILD_PROJECT_NAME}-github-sns-role"
+        PolicyDocument:
+          Statement:
+            - Effect: Allow
+              Action: "sns:Publish"
+              Resource:
+                Ref: GithubEventSNSTopic
+GithubIAMUserAccessKey:
+  Type: "AWS::IAM::AccessKey"
+  Properties:
+    UserName:
+      Ref: GithubIAMUser
+##########################
+# GithubWebhook(CustomResource)
+##########################
+GithubWebhookCustomResourceRole:
+  Type: "AWS::IAM::Role"
+  Properties:
+    AssumeRolePolicyDocument:
+      Version: "2012-10-17"
+      Statement:
+        - Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+          Action: "sts:AssumeRole"
+    Policies:
+      - PolicyName: "#{CodeBuildProjectName}-github-webhook-lambda-execution-role"
+        PolicyDocument:
+          Statement:
+            - Effect: Allow
+              Action:
+                - "logs:CreateLogGroup"
+                - "logs:CreateLogStream"
+                - "logs:PutLogEvents"
+              Resource: "arn:aws:logs:*:*:*"
+GithubWebhookCustomResource:
+  Type: "AWS::Lambda::Function"
+  Properties:
+    Handler: index.handler
+    Role:
+      Fn::GetAtt:
+        - GithubWebhookCustomResourceRole
+        - Arn
+    Code: ./services/js/githubWebhookResources
+    Runtime: nodejs6.10
+    Timeout: 30
+    Environment:
+      Variables:
+        GITHUB_TOKEN: ${env:GITHUB_PERSONAL_ACCESS_TOKEN}
+        GITHUB_REPOSITORY_URL: ${env:GITHUB_REPOSITORY_URL}
+        GITHUB_TARGET_RESOURCE: ${env:GITHUB_TARGET_RESOURCE}
+        SNS_ACCESS_KEY_ID:
+          Ref: GithubIAMUserAccessKey
+        SNS_SECRET_ACCESS_KEY:
+          Fn::GetAtt:
+            - GithubIAMUserAccessKey
+            - SecretAccessKey
+        SNS_REGION:
+          Ref: "AWS::Region"
+        SNS_TOPIC:
+          Ref: GithubEventSNSTopic
+GithubWebhook:
+  Type: "Custom::GithubWebhook"
+  Properties:
+    ServiceToken:
+      Fn::GetAtt:
+        - GithubWebhookCustomResource
+        - Arn
+    # Define all variables to re-create Github's webhook configuration via `make deploy` when parameters have changed
+    GITHUB_TOKEN: ${env:GITHUB_PERSONAL_ACCESS_TOKEN}
+    GITHUB_REPOSITORY_URL: ${env:GITHUB_REPOSITORY_URL}
+    GITHUB_TARGET_RESOURCE: ${env:GITHUB_TARGET_RESOURCE}
+    SNS_ACCESS_KEY_ID:
+      Ref: GithubIAMUserAccessKey
+    SNS_SECRET_ACCESS_KEY:
+      Fn::GetAtt:
+        - GithubIAMUserAccessKey
+        - SecretAccessKey
+    SNS_REGION:
+      Ref: "AWS::Region"
+    SNS_TOPIC:
+      Ref: GithubEventSNSTopic
+##########################
+# Lambda (BuildStateNotifier)
+##########################
+LambdaExecutionRole:
+  Type: "AWS::IAM::Role"
+  Properties:
+    AssumeRolePolicyDocument:
+      Version: "2012-10-17"
+      Statement:
+        - Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+          Action: "sts:AssumeRole"
+    Policies:
+      - PolicyName: "${env:CODEBUILD_PROJECT_NAME}-lambda-execution-role"
+        PolicyDocument:
+          Statement:
+            - Effect: Allow
+              Action:
+                - "logs:CreateLogGroup"
+                - "logs:CreateLogStream"
+                - "logs:PutLogEvents"
+              Resource: "arn:aws:logs:*:*:*"
+GithubWebhookHandler:
+  Type: "AWS::Serverless::Function"
+  Properties:
+    Role:
+      Fn::GetAtt:
+        - WebhookHandlerExecutionRole
+        - Arn
+    Handler: index.handler
+    Runtime: nodejs6.10
+    CodeUri: ./src/functions/github-webhook-handler
+    Timeout: 10
+    MemorySize: 128
+    Events:
+      WebhookReceive:
+        Type: SNS
+        Properties:
+          Topic:
+            Ref: GithubEventSNSTopic
+    Environment:
+      Variables:
+        DO_NOT_RUN: false
+        CODEBUILD_PROJECT_REGION: ${env:CODEBUILD_PROJECT_REGION}
+        CODEBUILD_PROJECT_NAME: ${env:CODEBUILD_PROJECT_NAME}
+        GITHUB_TOKEN: ${env:GITHUB_PERSONAL_ACCESS_TOKEN}
+        GITHUB_REPOSITORY_URL: ${env:GITHUB_REPOSITORY_URL}
+        GITHUB_TARGET_RESOURCE: ${env:GITHUB_TARGET_RESOURCE}
+BuildStateNotifier:
+  Type: "AWS::Serverless::Function"
+  Properties:
+    Role:
+      Fn::GetAtt:
+        - LambdaExecutionRole
+        - Arn
+    Handler: index.handler
+    Runtime: nodejs6.10
+    CodeUri: ./src/functions/build-state-notifier
+    Timeout: 10
+    MemorySize: 128
+    Environment:
+      Variables:
+        CODEBUILD_PROJECT_REGION: ${env:CODEBUILD_PROJECT_REGION}
+        GITHUB_TOKEN: ${env:GITHUB_PERSONAL_ACCESS_TOKEN}
+        GITHUB_REPOSITORY_URL: ${env:GITHUB_REPOSITORY_URL}
+    Events:
+      CodeBuildStatusChange:
+        Type: CloudWatchEvent
+        Properties:
+          Pattern:
+            source:
+              - "aws.codebuild"
+            detail-type:
+              - "CodeBuild Build State Change"
+            detail:
+              project-name:
+                - ${env:CODEBUILD_PROJECT_NAME}
+  ##########################
+  # Lambda (WebhookHandler)
+  ##########################
+WebhookHandlerExecutionRole:
+  Type: "AWS::IAM::Role"
+  Properties:
+    AssumeRolePolicyDocument:
+      Version: "2012-10-17"
+      Statement:
+        - Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+          Action: "sts:AssumeRole"
+    Policies:
+      - PolicyName: "${env:CODEBUILD_PROJECT_NAME}-webhook-handler-execution-role"
+        PolicyDocument:
+          Statement:
+            - Effect: Allow
+              Action:
+                - "logs:CreateLogGroup"
+                - "logs:CreateLogStream"
+                - "logs:PutLogEvents"
+              Resource: "arn:aws:logs:*:*:*"
+            - Effect: Allow
+              Action:
+                - "codebuild:StartBuild"
+              Resource: "arn:aws:codebuild:#{AWS::Region}:#{AWS::AccountId}:project/${env:CODEBUILD_PROJECT_NAME}"
