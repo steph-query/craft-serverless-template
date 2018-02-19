@@ -20,11 +20,13 @@ service: ${env:SLS_PROJECT}
 provider:
   name: aws
   runtime: nodejs6.10
-  stage: ${env:SLS_ENV}
+  stage:
+    prod: {}
+    test: {}
+    dev: {}
   region: ${env:SLS_REGION}
 
 custom:
-  appName: defaultAppName
   S3_BUCKET: DEFAULT_BUCKET
   S3_KEY: DEFAULT_S3_KEY
   SNS_TOPIC: DEFAULT_SNS_TOPIC
@@ -60,7 +62,7 @@ custom:
 
 functions:
   deploy_spa:
-    name: Deploy${self:custom.appName}Lambda
+    name: Deploy${self:service}Lambda
     handler: services/deploy_spa.lambda_handler
     runtime: python2.7
     environment:
