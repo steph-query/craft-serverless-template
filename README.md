@@ -1,9 +1,31 @@
-This project was bootstrapped with [Create React App](https://github.com/facebookincubator/create-react-app) and [CRAFT](https://github.com/stoyan/craft).
+Create a fullstack single page application using the serverless framework! This project was bootstrapped with [Create React App](https://github.com/facebookincubator/create-react-app) and [CRAFT](https://github.com/stoyan/craft).
 
 ## Tweaks I made to the fork:
 
+- Initialized a serverless framework project.
+- Added a `services` directory to deliniate the react application from the serverless services.
 - Added `styled-components` to the `package.json`, because I never want to be without it again.
-- Added a the directory `src/utils` to keep API and Style files.
+- Added a the directory `src/utils` to keep API and global style vars for the design library.
+
+## Deployment
+
+The project extends the standard `sls.yml` with a couple of CloudFormation templates to set up AWS CodeBuild and AWS CodePipeline.
+
+*The good*:
+- You get CI for your SPA without having to deal with GUI bullcrap that comes with setting up all these goddam AWS services! Hooray!
+- You get a single deployment process for all the services you set up outside of your SPA! Hip hip, hooray!
+
+*The bad*:
+- You are locked into AWS... for now. (golden handcuffs!)
+
+## Extending the serverless setup:
+
+- You can add more YAML files and reference in the same way we reference CodeBuild and CodePipeline configs in their respective files.
+- If you add a new serverless plugin to your setup, make sure to add it to `package.json`. That way it will automatically be included in AWS CodeBuild process, and you will not have to keep updating `buildpsec.yml`.
+
+
+## The frontend:
+
 
 ### A bit about styles
 

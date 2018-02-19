@@ -11,7 +11,7 @@
 #
 # Happy Coding!
 
-service: test
+service: ${env:SLS_PROJECT}
 
 # You can pin your service to only deploy with a specific Serverless version
 # Check out our docs for more details
@@ -22,8 +22,8 @@ provider:
   runtime: nodejs6.10
 
 # you can overwrite defaults here
-#  stage: dev
-#  region: us-east-1
+  stage: ${env:SLS_ENV}
+  region: ${env:SLS_ENV}
 
 # you can add statements to the Lambda function's IAM Role here
 #  iamRoleStatements:
@@ -55,8 +55,9 @@ provider:
 #    - exclude-me-dir/**
 
 functions:
-  hello:
-    handler: handler.hello
+  deploy_spa:
+    handler: services/deploy_spa.lambda_handler
+    runtime: python2.7
 
 #    The following are a few example events you can configure
 #    NOTE: Please make sure to change your handler code to work with those events
@@ -92,13 +93,18 @@ functions:
 #      variable2: value2
 
 # you can add CloudFormation resource templates here
-#resources:
-#  Resources:
-#    NewResource:
-#      Type: AWS::S3::Bucket
-#      Properties:
-#        BucketName: my-new-bucket
-#  Outputs:
-#     NewOutput:
-#       Description: "Description for the output"
-#       Value: "Some output value"
+# From the docs: https://serverless.com/framework/docs/providers/aws/guide/resources/
+#To have consistent naming in the CloudFormation Templates that get deployed we use a standard pattern:
+  # {Function Name}{Cloud Formation Resource Type}{Resource Name}{SequentialID or Random String}
+    # Function Name - This is optional for Resources that should be recreated when the function name gets changed. Those resources are also called function bound
+    # Cloud Formation Resource Type - E.g., S3Bucket
+    # Resource Name - An identifier for the specific resource, e.g. for an S3 Bucket the configured bucket name.
+    # SequentialID or Random String - For a few resources we need to add an optional sequential id or random string to identify them
+resources:
+  Resources:
+    CodeBuild:
+      Type: AWS::CodeBuild::Project
+      Properties:
+  CodePipeline:
+      Type: AWS::CodePipeline::Pipeline
+      Properties:
