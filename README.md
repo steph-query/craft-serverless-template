@@ -1,11 +1,15 @@
 Create a fullstack single page application using the serverless framework! This project was bootstrapped with [Create React App](https://github.com/facebookincubator/create-react-app) and [CRAFT](https://github.com/stoyan/craft).
 
-## Tweaks I made to the fork:
+## Tweaks I made to the fork
 
 - Initialized a serverless framework project.
 - Added a `services` directory to deliniate the react application from the serverless services.
 - Added `styled-components` to the `package.json`, because I never want to be without it again.
 - Added a the directory `src/utils` to keep API and global style vars for the design library.
+
+## Getting Started
+
+You need to set a couple environment variables: `SLS_PROJECT` and `SLS_REGION`. When running SLS deploy, you must
 
 ## Deployment
 
@@ -59,7 +63,7 @@ You can then swap the colors to invert your color scheme, though you may want to
 
 ```
 npm i -g craftool
-craft {{ AppName }} https://github.com/steph-query/craft-redux/archive/master.zip
+craft {{ AppName }} https://github.com/steph-query/craft-serverless/archive/master.zip
 ```
 
 ## General Resources
