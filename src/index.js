@@ -8,8 +8,6 @@ import store from './store';
 import App from './containers/App';
 import NotFound from './containers/NotFound';
 
-import './index.css';
-
 ReactDOM.render(
   <BrowserRouter>
     <div className="App-header">
