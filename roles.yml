@@ -1,0 +1,66 @@
+GithubIAMUser:
+  Type: "AWS::IAM::User"
+  Properties:
+    Policies:
+      - PolicyName: "#{CodeBuildProjectName}-github-sns-role"
+        PolicyDocument:
+          Statement:
+            - Effect: Allow
+              Action: "sns:Publish"
+              Resource: Ref: GitHubEventSNSTopic
+GitHubIAMUserAccessKey:
+  Type: "AWS::IAM::AccessKey"
+  Properties:
+    UserName: Ref: GithubIAMUser
+##########################
+# GitHubWebhook(CustomResource)
+##########################
+GitHubWebhookCustomResourceRole:
+  Type: "AWS::IAM::Role"
+  Properties:
+    AssumeRolePolicyDocument:
+      Version: "2012-10-17"
+      Statement:
+        - Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+          Action: "sts:AssumeRole"
+    Policies:
+      - PolicyName: "#{CodeBuildProjectName}-github-webhook-lambda-execution-role"
+        PolicyDocument:
+          Statement:
+            - Effect: Allow
+              Action:
+                - "logs:CreateLogGroup"
+                - "logs:CreateLogStream"
+                - "logs:PutLogEvents"
+              Resource: "arn:aws:logs:*:*:*"
+GitHubWebhookCustomResource:
+  Type: "AWS::Serverless::Function"
+  Properties:
+    Handler: index.handler
+    Role: !GetAtt GitHubWebhookCustomResourceRole.Arn
+    CodeUri: ./src/functions/github-webhook-resource
+    Runtime: nodejs6.10
+    Timeout: 30
+    Environment:
+      Variables:
+        GITHUB_TOKEN: Ref: GitHubPersonalAccessToken
+        GITHUB_REPOSITORY_URL: Ref: GitHubRepositoryUrl
+        GITHUB_TARGET_RESOURCE: Ref: GitHubTargetResource
+        SNS_ACCESS_KEY_ID: Ref: GitHubIAMUserAccessKey
+        SNS_SECRET_ACCESS_KEY: !GetAtt GitHubIAMUserAccessKey.SecretAccessKey
+        SNS_REGION: Ref: "AWS::Region"
+        SNS_TOPIC: Ref: GitHubEventSNSTopic
+GitHubWebhook:
+  Type: "Custom::GitHubWebhook"
+  Properties:
+    ServiceToken: !GetAtt GitHubWebhookCustomResource.Arn
+    # Define all variables to re-create GitHub's webhook configuration via `make deploy` when parameters have changed
+    GITHUB_TOKEN: Ref: GitHubPersonalAccessToken
+    GITHUB_REPOSITORY_URL: Ref: GitHubRepositoryUrl
+    GITHUB_TARGET_RESOURCE: Ref: GitHubTargetResource
+    SNS_ACCESS_KEY_ID: Ref: GitHubIAMUserAccessKey
+    SNS_SECRET_ACCESS_KEY: !GetAtt GitHubIAMUserAccessKey.SecretAccessKey
+    SNS_REGION: Ref: "AWS::Region"
+    SNS_TOPIC: Ref: GitHubEventSNSTopic

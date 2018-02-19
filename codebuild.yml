@@ -1,0 +1,20 @@
+Type: "AWS::CodeBuild::Project"
+Properties:
+  Name: ${self:service}CodeBuild
+  ServiceRole: codebuild-service-role
+  Artifacts:
+    Type: s3
+    Location: build.grassfeddata.com
+    Name: grassfeddatabuild.zip
+  Description: This codebuild deploys my website!
+  Environment:
+    Image: aws/codebuild/nodejs:7.0.0
+    ComputeType: BUILD_GENERAL1_SMALL
+    EnvironmentVaribles: []
+  Source:
+    Auth:
+      Type: OAUTH
+      Resource: ${file(roles.yml):GithubIAMUser}
+    Location: https://github.com/steph-query/grass-fed-data.git
+    Type: GITHUB
+  TimeoutInMinutes: 15
