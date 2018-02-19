@@ -1,4 +1,5 @@
 import mimetypes
+import os
 import StringIO
 import zipfile
 
@@ -7,11 +8,11 @@ from botocore.client import Config
 
 def lambda_handler(event, context):
 # Args: s3_bucket, s3_path, sns_topic
-    S3_BUCKET = event.bucket
-    S3_KEY = event.object_key
+    S3_BUCKET = os.environ.get('S3_BUCKET')
+    S3_KEY = os.environ.get('S3_KEY')
 
     sns = boto3.resource("sns")
-    topic = sns.Topic(event.topic)
+    topic = sns.Topic(os.environ.get('SNS_TOPIC')
 
     location = {
         "bucketName": S3_BUCKET,

@@ -20,10 +20,14 @@ service: ${env:SLS_PROJECT}
 provider:
   name: aws
   runtime: nodejs6.10
-
-# you can overwrite defaults here
   stage: ${env:SLS_ENV}
-  region: ${env:SLS_ENV}
+  region: ${env:SLS_REGION}
+
+custom:
+  appName: defaultAppName
+  S3_BUCKET: DEFAULT_BUCKET
+  S3_KEY: DEFAULT_S3_KEY
+  SNS_TOPIC: DEFAULT_SNS_TOPIC
 
 # you can add statements to the Lambda function's IAM Role here
 #  iamRoleStatements:
@@ -56,8 +60,13 @@ provider:
 
 functions:
   deploy_spa:
+    name: Deploy${self:custom.appName}Lambda
     handler: services/deploy_spa.lambda_handler
     runtime: python2.7
+    environment:
+      S3_BUCKET: ${self:custom.DEFAULT_BUCKET}
+      S3_KEY: ${self:custom.DEFAULT_S3_KEY}
+      SNS_TOPIC: ${self:custom.DEFAULT_SNS_TOPIC}
 
 #    The following are a few example events you can configure
 #    NOTE: Please make sure to change your handler code to work with those events
@@ -102,9 +111,6 @@ functions:
     # SequentialID or Random String - For a few resources we need to add an optional sequential id or random string to identify them
 resources:
   Resources:
-    CodeBuild:
-      Type: AWS::CodeBuild::Project
-      Properties:
-  CodePipeline:
-      Type: AWS::CodePipeline::Pipeline
-      Properties:
+    CodeBuild: ${file(codebuild.yml)}
+    CodePipeline: ${file(codebuild.yml)}
+
