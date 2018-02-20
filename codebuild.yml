@@ -1,19 +1,46 @@
-Type: "AWS::CodeBuild::Project"
-Properties:
-  Name: "${self:custom.serviceName}CodeBuild"
-  ServiceRole: "${self:custom.serviceName}CodeBuildRole"
-  Artifacts:
-    Type: s3
-    Location: ${self:custom.codeBuildBucketName}
-    Name: "${self:custom.serviceName}.zip"
+CodeBuildProject:
+  Type: "AWS::CodeBuild::Project"
+  Properties:
+    Name: "${self:custom.serviceName}CodeBuild"
+    ServiceRole:
+      Fn::GetAtt:
+        - CodeBuildRole
+        - Arn
     Description: "This codebuild deploys ${self:custom.serviceName}!"
-  Environment:
-    Image: "aws/codebuild/${self:custom.codeBuildRuntime}/${self:custom.codeBuildRuntimeVersion}"
-    ComputeType: BUILD_GENERAL1_SMALL
-  Source:
-    Auth:
-      Type: OAUTH
-      Resource: ${file(github.yml):GithubIAMUser}
+    Artifacts:
+      Type: S3
+      Location: ${self:custom.codeBuildBucketName}
+      Name: "${self:custom.serviceName}.zip"
+    Environment:
+      Type: LINUX_CONTAINER
+      Image: "aws/codebuild/${self:custom.codeBuildRuntime}/${self:custom.codeBuildRuntimeVersion}"
+      ComputeType: BUILD_GENERAL1_SMALL
+    Source:
+      Auth:
+        Type: OAUTH
+        Resource:
+          Fn::GetAtt:
+            - GithubIAMUser
+            - Arn
       Location: ${env:GITHUB_REPOSITORY_URL}
-    Type: GITHUB
-  TimeoutInMinutes: 15
+      Type: GITHUB
+    TimeoutInMinutes: 15
+CodeBuildRole:
+  Type: "AWS::IAM::Role"
+  Properties:
+    AssumeRolePolicyDocument:
+      Statement:
+      - Effect: Allow
+        Principal:
+          Service:
+          - codebuild.amazonaws.com
+        Action:
+        - "sts:AssumeRole"
+    Policies:
+    - PolicyName: codebuild-service
+      PolicyDocument:
+        Statement:
+        - Effect: Allow
+          Action: "*"
+          Resource: "*"
+        Version: '2012-10-17'

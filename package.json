@@ -16,7 +16,6 @@
     "redux-logger": "^2.7.4",
     "redux-thunk": "^2.2.0",
     "reselect": "^2.5.4",
-    "serverless-cf-vars": "^0.1.0",
     "serverless-pseudo-parameters": "^1.4.0",
     "set.prototype.tojson": "^0.1.1"
   },

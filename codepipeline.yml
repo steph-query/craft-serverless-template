@@ -1,1 +1,88 @@
-# Reference the deploy_spa lambda
+Pipeline:
+  Type: AWS::CodePipeline::Pipeline
+  Properties:
+    RoleArn:
+      Fn::GetAtt:
+        - CodePipelineRole
+        - Arn
+    Stages:
+    - Name: Source
+      Actions:
+      - InputArtifacts: []
+        Name: Source
+        ActionTypeId:
+          Category: Source
+          Owner: ThirdParty
+          Version: '1'
+          Provider: GitHub
+        OutputArtifacts:
+        - Name: SourceOutput
+        Configuration:
+          Owner:
+            Ref: GithubIAMUser
+          Repo: ${env:GITHUB_REPOSITORY_URL}
+          Branch: master
+          OAuthToken: ${env:GITHUB_PERSONAL_ACCESS_TOKEN}
+        RunOrder: 1
+    - Name: Deploy
+      Actions:
+      - Name: Artifact
+        ActionTypeId:
+          Category: Build
+          Owner: AWS
+          Version: '1'
+          Provider: CodeBuild
+        InputArtifacts:
+        - Name: SourceOutput
+        OutputArtifacts:
+        - Name: DeployOutput
+        Configuration:
+          ProjectName:
+            Ref: CodeBuildDeploySite
+        RunOrder: 1
+    ArtifactStore:
+      Type: S3
+      Location:
+        Ref: PipelineBucket
+CodePipelineRole:
+  Type: "AWS::IAM::Role"
+  Properties:
+    AssumeRolePolicyDocument:
+      Statement:
+      - Effect: Allow
+        Principal:
+          Service:
+          - codepipeline.amazonaws.com
+        Action:
+        - "sts:AssumeRole"
+    Path: "/"
+    Policies:
+    - PolicyName: codepipeline-service
+      PolicyDocument:
+        Statement:
+        - Action:
+          - codebuild:*
+          Resource: "*"
+          Effect: Allow
+        - Action:
+          - s3:GetObject
+          - s3:GetObjectVersion
+          - s3:GetBucketVersioning
+          Resource: "*"
+          Effect: Allow
+        - Action:
+          - s3:PutObject
+          Resource:
+          - "arn:aws:s3:::codepipeline*"
+          Effect: Allow
+        - Action:
+          - s3:*
+          - cloudformation:*
+          - ecs:*
+          - iam:PassRole
+          Resource: "*"
+          Effect: Allow
+        Version: '2012-10-17'
+PipelineBucket:
+  Type: AWS::S3::Bucket
+

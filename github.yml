@@ -2,9 +2,16 @@ GithubEventSNSTopic:
   Type: "AWS::SNS::Topic"
   Properties:
     DisplayName: "${self:custom.serviceName}-GithubEvents"
+    Subscription:
+      - Endpoint:
+          Fn::GetAtt:
+            - GithubWebhookHandler
+            - Arn
+        Protocol: lambda
 GithubIAMUser:
   Type: "AWS::IAM::User"
   Properties:
+    UserName: "${env:CODEBUILD_PROJECT_NAME}-github-user"
     Policies:
       - PolicyName: "${env:CODEBUILD_PROJECT_NAME}-github-sns-role"
         PolicyDocument:
@@ -32,7 +39,7 @@ GithubWebhookCustomResourceRole:
             Service: lambda.amazonaws.com
           Action: "sts:AssumeRole"
     Policies:
-      - PolicyName: "#{CodeBuildProjectName}-github-webhook-lambda-execution-role"
+      - PolicyName: "${env:CODEBUILD_PROJECT_NAME}-github-webhook-lambda-execution-role"
         PolicyDocument:
           Statement:
             - Effect: Allow
@@ -49,7 +56,8 @@ GithubWebhookCustomResource:
       Fn::GetAtt:
         - GithubWebhookCustomResourceRole
         - Arn
-    Code: ./services/js/githubWebhookResources
+    Code:
+      ZipFile: ./services/js/githubWebhookResources
     Runtime: nodejs6.10
     Timeout: 30
     Environment:
@@ -112,7 +120,7 @@ LambdaExecutionRole:
                 - "logs:PutLogEvents"
               Resource: "arn:aws:logs:*:*:*"
 GithubWebhookHandler:
-  Type: "AWS::Serverless::Function"
+  Type: "AWS::Lambda::Function"
   Properties:
     Role:
       Fn::GetAtt:
@@ -120,15 +128,10 @@ GithubWebhookHandler:
         - Arn
     Handler: index.handler
     Runtime: nodejs6.10
-    CodeUri: ./src/functions/github-webhook-handler
+    Code:
+      ZipFile: ./src/functions/github-webhook-handler
     Timeout: 10
     MemorySize: 128
-    Events:
-      WebhookReceive:
-        Type: SNS
-        Properties:
-          Topic:
-            Ref: GithubEventSNSTopic
     Environment:
       Variables:
         DO_NOT_RUN: false
@@ -138,7 +141,7 @@ GithubWebhookHandler:
         GITHUB_REPOSITORY_URL: ${env:GITHUB_REPOSITORY_URL}
         GITHUB_TARGET_RESOURCE: ${env:GITHUB_TARGET_RESOURCE}
 BuildStateNotifier:
-  Type: "AWS::Serverless::Function"
+  Type: "AWS::Lambda::Function"
   Properties:
     Role:
       Fn::GetAtt:
@@ -146,7 +149,8 @@ BuildStateNotifier:
         - Arn
     Handler: index.handler
     Runtime: nodejs6.10
-    CodeUri: ./src/functions/build-state-notifier
+    Code:
+      ZipFile: ./src/functions/build-state-notifier
     Timeout: 10
     MemorySize: 128
     Environment:
@@ -154,19 +158,36 @@ BuildStateNotifier:
         CODEBUILD_PROJECT_REGION: ${env:CODEBUILD_PROJECT_REGION}
         GITHUB_TOKEN: ${env:GITHUB_PERSONAL_ACCESS_TOKEN}
         GITHUB_REPOSITORY_URL: ${env:GITHUB_REPOSITORY_URL}
-    Events:
-      CodeBuildStatusChange:
-        Type: CloudWatchEvent
-        Properties:
-          Pattern:
-            source:
-              - "aws.codebuild"
-            detail-type:
-              - "CodeBuild Build State Change"
-            detail:
-              project-name:
-                - ${env:CODEBUILD_PROJECT_NAME}
-  ##########################
+DeployUpdateEventRule:
+  Type: "AWS::Events::Rule"
+  Properties:
+    Name: "${env:CODEBUILD_PROJECT_NAME}-DeployTrigger"
+    Description: xxx
+    EventPattern:
+      source:
+        - "aws.codebuild"
+      detail-type:
+        - "CodeBuild Build State Change"
+      detail:
+        project-name:
+          - ${env:CODEBUILD_PROJECT_NAME}
+    Targets:
+      - Arn:
+          Fn::GetAtt:
+            - BuildStateNotifier
+            - Arn
+        Id: "${env:CODEBUILD_PROJECT_NAME}BuildStatus"
+SNSInvokeLambdaPermission:
+  Type: "AWS::Lambda::Permission"
+  Properties:
+    Action: "lambda:InvokeFunction"
+    FunctionName:
+      Fn::GetAtt:
+        - BuildStateNotifier
+        - Arn
+    Principal: sns.amazonaws.com
+    SourceArn:
+      Ref: GithubEventSNSTopic
   # Lambda (WebhookHandler)
   ##########################
 WebhookHandlerExecutionRole:
@@ -192,4 +213,5 @@ WebhookHandlerExecutionRole:
             - Effect: Allow
               Action:
                 - "codebuild:StartBuild"
-              Resource: "arn:aws:codebuild:#{AWS::Region}:#{AWS::AccountId}:project/${env:CODEBUILD_PROJECT_NAME}"
+              Resource: "arn:aws:codebuild:${env:CODEBUILD_PROJECT_REGION}:${env:AWS_ACCOUNT_ID}:project/${env:CODEBUILD_PROJECT_NAME}"
+

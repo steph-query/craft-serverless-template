@@ -14,7 +14,7 @@ custom:
   codeBuildBucketName: "${self:custom.serviceName}.build"
   codeBuildEnvironmentVariables: []
   hostBucketPath: test
-  hostBucketName: s3TestHostBucket
+  hostBucketName: s3-test-host-bucket
 plugins:
   - serverless-pseudo-parameters
 functions:
@@ -36,7 +36,8 @@ functions:
     # SequentialID or Random String - For a few resources we need to add an optional sequential id or random string to identify them
 resources:
   Resources:
-    CodeBuild: ${file(codebuild.yml)}
+    CodeBuildProject: ${file(codebuild.yml):CodeBuildProject}
+    CodeBuildRole: ${file(codebuild.yml):CodeBuildRole}
     BuildBucket:
       Type: AWS::S3::Bucket
       Properties:
@@ -55,7 +56,7 @@ resources:
     WebhookHandlerExecutionRole: ${file(github.yml):WebhookHandlerExecutionRole}
     GithubWebhookHandler: ${file(github.yml):GithubWebhookHandler}
     LambdaExecutionRole: ${file(github.yml):LambdaExecutionRole}
-
+    DeployUpdateEventRule: ${file(github.yml):DeployUpdateEventRule}
   #CodePipeline: ${file(codebuild.yml)}
   #Outputs:
     #GithubEventSNSTopicArn:
