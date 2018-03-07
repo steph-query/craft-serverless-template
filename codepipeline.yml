@@ -1,49 +1,3 @@
-Pipeline:
-  Type: AWS::CodePipeline::Pipeline
-  Properties:
-    RoleArn:
-      Fn::GetAtt:
-        - CodePipelineRole
-        - Arn
-    Stages:
-    - Name: Source
-      Actions:
-      - InputArtifacts: []
-        Name: Source
-        ActionTypeId:
-          Category: Source
-          Owner: ThirdParty
-          Version: '1'
-          Provider: GitHub
-        OutputArtifacts:
-        - Name: SourceOutput
-        Configuration:
-          Owner:
-            Ref: GithubIAMUser
-          Repo: ${env:GITHUB_REPOSITORY_URL}
-          Branch: master
-          OAuthToken: ${env:GITHUB_PERSONAL_ACCESS_TOKEN}
-        RunOrder: 1
-    - Name: Deploy
-      Actions:
-      - Name: Artifact
-        ActionTypeId:
-          Category: Build
-          Owner: AWS
-          Version: '1'
-          Provider: CodeBuild
-        InputArtifacts:
-        - Name: SourceOutput
-        OutputArtifacts:
-        - Name: DeployOutput
-        Configuration:
-          ProjectName:
-            Ref: CodeBuildDeploySite
-        RunOrder: 1
-    ArtifactStore:
-      Type: S3
-      Location:
-        Ref: PipelineBucket
 CodePipelineRole:
   Type: "AWS::IAM::Role"
   Properties:
@@ -83,6 +37,74 @@ CodePipelineRole:
           Resource: "*"
           Effect: Allow
         Version: '2012-10-17'
+
 PipelineBucket:
   Type: AWS::S3::Bucket
 
+SiteBucket:
+  Type: AWS::S3::Bucket
+  Properties:
+    AccessControl: PublicRead
+    BucketName: ${self:custom.siteBucketName}
+    WebsiteConfiguration:
+      IndexDocument: index.html
+
+Pipeline:
+  Type: AWS::CodePipeline::Pipeline
+  Properties:
+    RoleArn:
+      Fn::GetAtt:
+        - CodePipelineRole
+        - Arn
+    Stages:
+    - Name: Source
+      Actions:
+      - InputArtifacts: []
+        Name: Source
+        ActionTypeId:
+          Category: Source
+          Owner: ThirdParty
+          Version: '1'
+          Provider: GitHub
+        OutputArtifacts:
+        - Name: SourceOutput
+        Configuration:
+          Owner: ${env:GITHUB_USER}
+          Repo: ${env:GITHUB_REPO}
+          Branch: master
+          OAuthToken: ${env:GITHUB_PERSONAL_ACCESS_TOKEN}
+        RunOrder: 1
+    - Name: Build
+      Actions:
+      - Name: Artifact
+        ActionTypeId:
+          Category: Build
+          Owner: AWS
+          Version: '1'
+          Provider: CodeBuild
+        InputArtifacts:
+          - Name: SourceOutput
+        OutputArtifacts:
+          - Name: BuildOutput
+        Configuration:
+          ProjectName:
+            Ref: CodeBuildProject
+        RunOrder: 1
+    - Name: Deploy
+      Actions:
+      - InputArtifacts: []
+        Name: Lambda
+        ActionTypeId:
+          Category: Invoke
+          Owner: AWS
+          Version: '1'
+          Provider: Lambda
+        OutputArtifacts: []
+        Configuration:
+          FunctionName: ${self:functions.deploy_spa.name}
+        RunOrder: 1
+
+    ArtifactStore:
+      Type: S3
+      Location:
+        Ref: PipelineBucket

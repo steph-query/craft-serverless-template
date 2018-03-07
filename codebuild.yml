@@ -2,29 +2,21 @@ CodeBuildProject:
   Type: "AWS::CodeBuild::Project"
   Properties:
     Name: "${self:custom.serviceName}CodeBuild"
+    Description: "This codebuild deploys ${self:custom.serviceName}!"
     ServiceRole:
       Fn::GetAtt:
         - CodeBuildRole
         - Arn
-    Description: "This codebuild deploys ${self:custom.serviceName}!"
     Artifacts:
-      Type: S3
-      Location: ${self:custom.codeBuildBucketName}
-      Name: "${self:custom.serviceName}.zip"
+      Type: CODEPIPELINE
     Environment:
       Type: LINUX_CONTAINER
       Image: "aws/codebuild/${self:custom.codeBuildRuntime}/${self:custom.codeBuildRuntimeVersion}"
       ComputeType: BUILD_GENERAL1_SMALL
     Source:
-      Auth:
-        Type: OAUTH
-        Resource:
-          Fn::GetAtt:
-            - GithubIAMUser
-            - Arn
-      Location: ${env:GITHUB_REPOSITORY_URL}
-      Type: GITHUB
+      Type: CODEPIPELINE
     TimeoutInMinutes: 15
+
 CodeBuildRole:
   Type: "AWS::IAM::Role"
   Properties:

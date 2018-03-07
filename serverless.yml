@@ -1,4 +1,4 @@
-service: myTemplateService
+service: testTemplate
 provider:
   name: aws
   runtime: nodejs6.10
@@ -8,13 +8,11 @@ provider:
     #dev: dev
   region: us-east-1
 custom:
-  serviceName: template
+  serviceName: template-12345
+  lambdaBucket: ${self:custom.serviceName}-test-lambda-bucket
   codeBuildRuntime: "aws/codebuild"
   codeBuildRuntimeVersion: "nodejs:7.0.0"
-  codeBuildBucketName: "${self:custom.serviceName}.build"
-  codeBuildEnvironmentVariables: []
-  hostBucketPath: test
-  hostBucketName: s3-test-host-bucket
+  siteBucketName: ${self:custom.serviceName}-test-site-bucket
 plugins:
   - serverless-pseudo-parameters
 functions:
@@ -23,8 +21,8 @@ functions:
     handler: services/deploy_spa.lambda_handler
     runtime: python2.7
     environment:
-      S3_BUCKET: ${self:custom.hostBucketName}
-      S3_KEY: ${self:custom.hostBucketPath}
+      S3_BUCKET: ${self:custom.lambdaBucket}
+      S3_KEY: deploy_spa
 
 # you can add CloudFormation resource templates here
 # From the docs: https://serverless.com/framework/docs/providers/aws/guide/resources/
@@ -38,26 +36,22 @@ resources:
   Resources:
     CodeBuildProject: ${file(codebuild.yml):CodeBuildProject}
     CodeBuildRole: ${file(codebuild.yml):CodeBuildRole}
-    BuildBucket:
-      Type: AWS::S3::Bucket
-      Properties:
-        BucketName: ${self:custom.codeBuildBucketName}
-    HostBucket:
-      Type: AWS::S3::Bucket
-      Properties:
-        BucketName: ${self:custom.hostBucketName}
-    GithubEventSNSTopic: ${file(github.yml):GithubEventSNSTopic}
-    GithubIAMUser: ${file(github.yml):GithubIAMUser}
-    GithubIAMUserAccessKey: ${file(github.yml):GithubIAMUserAccessKey}
-    GithubWebhookCustomResourceRole: ${file(github.yml):GithubWebhookCustomResourceRole}
-    GithubWebhookCustomResource: ${file(github.yml):GithubWebhookCustomResource}
-    GithubWebhook: ${file(github.yml):GithubWebhook}
-    BuildStateNotifier: ${file(github.yml):BuildStateNotifier}
-    WebhookHandlerExecutionRole: ${file(github.yml):WebhookHandlerExecutionRole}
-    GithubWebhookHandler: ${file(github.yml):GithubWebhookHandler}
-    LambdaExecutionRole: ${file(github.yml):LambdaExecutionRole}
-    DeployUpdateEventRule: ${file(github.yml):DeployUpdateEventRule}
-  #CodePipeline: ${file(codebuild.yml)}
+    CodePipelineRole: ${file(codepipeline.yml):CodePipelineRole}
+    Pipeline: ${file(codepipeline.yml):Pipeline}
+    SiteBucket: ${file(codepipeline.yml):SiteBucket}
+    PipelineBucket: ${file(codepipeline.yml):PipelineBucket}
+
+    #GithubEventSNSTopic: ${file(github.yml):GithubEventSNSTopic}
+    #GithubIAMUser: ${file(github.yml):GithubIAMUser}
+    #GithubIAMUserAccessKey: ${file(github.yml):GithubIAMUserAccessKey}
+    #GithubWebhookCustomResourceRole: ${file(github.yml):GithubWebhookCustomResourceRole}
+    #GithubWebhookCustomResource: ${file(github.yml):GithubWebhookCustomResource}
+    #GithubWebhook: ${file(github.yml):GithubWebhook}
+    #BuildStateNotifier: ${file(github.yml):BuildStateNotifier}
+    #WebhookHandlerExecutionRole: ${file(github.yml):WebhookHandlerExecutionRole}
+    #GithubWebhookHandler: ${file(github.yml):GithubWebhookHandler}
+    #LambdaExecutionRole: ${file(github.yml):LambdaExecutionRole}
+    #DeployUpdateEventRule: ${file(github.yml):DeployUpdateEventRule}
   #Outputs:
     #GithubEventSNSTopicArn:
       #Value:
