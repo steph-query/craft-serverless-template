@@ -94,7 +94,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/testTemplate/dev/1520402641631-2018-03-07T06:04:01.631Z/testTemplate.zip"
+          "S3Key": "serverless/testTemplate/dev/1520403537824-2018-03-07T06:18:57.824Z/testTemplate.zip"
         },
         "FunctionName": "Deploytemplate-12345Lambda",
         "Handler": "services/deploy_spa.lambda_handler",
@@ -119,14 +119,14 @@
         "IamRoleLambdaExecution"
       ]
     },
-    "DeployUnderscorespaLambdaVersiongzi6QdwKDNEPIO3P4CKSWyfzWUwbeLT3EAz0vNSkcUI": {
+    "DeployUnderscorespaLambdaVersionIXLtIr3J9mRvm4OmC9mjXOMP0TXCtcrmqmzYjQsE": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "DeployUnderscorespaLambdaFunction"
         },
-        "CodeSha256": "iNleXU39bSsQKvUedO1nUdHio5iqL+hMbUmgVhOmCN0="
+        "CodeSha256": "zSKQJwfyyhn1vwJw31LwukotmLdFj8QhIR1h5hFnjoM="
       }
     },
     "CodeBuildProject": {
@@ -374,7 +374,7 @@
     "DeployUnderscorespaLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "DeployUnderscorespaLambdaVersiongzi6QdwKDNEPIO3P4CKSWyfzWUwbeLT3EAz0vNSkcUI"
+        "Ref": "DeployUnderscorespaLambdaVersionIXLtIr3J9mRvm4OmC9mjXOMP0TXCtcrmqmzYjQsE"
       }
     }
   }
