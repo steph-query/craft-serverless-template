@@ -8,7 +8,7 @@ phases:
   build:
     commands:
       - npm run build
-      - serverless deploy
+      #- serverless deploy
   post_build:
     commands:
       - mv build/* .

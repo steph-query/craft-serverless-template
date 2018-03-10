@@ -108,7 +108,7 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/testTemplate/dev/1520403537824-2018-03-07T06:18:57.824Z/testTemplate.zip"
+                "S3Key": "serverless/testTemplate/dev/1520404042850-2018-03-07T06:27:22.850Z/testTemplate.zip"
               },
               "FunctionName": "Deploytemplate-12345Lambda",
               "Handler": "services/deploy_spa.lambda_handler",
@@ -133,14 +133,14 @@
               "IamRoleLambdaExecution"
             ]
           },
-          "DeployUnderscorespaLambdaVersionIXLtIr3J9mRvm4OmC9mjXOMP0TXCtcrmqmzYjQsE": {
+          "DeployUnderscorespaLambdaVersionTzPOzHSZ2aQX1XM6yaqiJZvqufcbhQ4AEzBxJqpgNY": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "DeployUnderscorespaLambdaFunction"
               },
-              "CodeSha256": "zSKQJwfyyhn1vwJw31LwukotmLdFj8QhIR1h5hFnjoM="
+              "CodeSha256": "05ZSMDy9p4hRmDBDw60WwFJ5BsirseUMwra7JtJdD34="
             }
           },
           "CodeBuildProject": {
@@ -388,7 +388,7 @@
           "DeployUnderscorespaLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "DeployUnderscorespaLambdaVersionIXLtIr3J9mRvm4OmC9mjXOMP0TXCtcrmqmzYjQsE"
+              "Ref": "DeployUnderscorespaLambdaVersionTzPOzHSZ2aQX1XM6yaqiJZvqufcbhQ4AEzBxJqpgNY"
             }
           }
         }
@@ -678,7 +678,7 @@
     "artifact": "/Users/nick/Projects/project_templates/craft-serverless/.serverless/testTemplate.zip"
   },
   "package": {
-    "artifactDirectoryName": "serverless/testTemplate/dev/1520403537824-2018-03-07T06:18:57.824Z",
+    "artifactDirectoryName": "serverless/testTemplate/dev/1520404042850-2018-03-07T06:27:22.850Z",
     "artifact": "testTemplate.zip"
   }
 }
