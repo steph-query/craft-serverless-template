@@ -10,6 +10,49 @@
       "variableSyntax": "\\${([ ~:a-zA-Z0-9._'\",\\-\\/\\(\\)]+?)}",
       "name": "aws",
       "runtime": "nodejs6.10",
+      "iamRoleStatements": [
+        {
+          "Effect": "Allow",
+          "Action": [
+            "s3:ListBucket"
+          ],
+          "Resource": "arn:aws:s3:::*"
+        },
+        {
+          "Effect": "Allow",
+          "Action": [
+            "s3:PutObject"
+          ],
+          "Resource": "arn:aws:s3:::*"
+        },
+        {
+          "Effect": "Allow",
+          "Action": [
+            "logs:CreateLogGroup",
+            "logs:CreateLogStream",
+            "logs:PutLogEvents"
+          ],
+          "Resource": "arn:aws:logs:*:*:*"
+        },
+        {
+          "Effect": "Allow",
+          "Action": [
+            "codepipeline:AcknowledgeJob",
+            "codepipeline:GetJobDetails",
+            "codepipeline:PollForJobs",
+            "codepipeline:PutJobFailureResult",
+            "codepipeline:PutJobSuccessResult"
+          ],
+          "Resource": "*"
+        },
+        {
+          "Effect": "Allow",
+          "Action": [
+            "sns:Publish"
+          ],
+          "Resource": "arn:aws:sns:*"
+        }
+      ],
       "versionFunctions": true,
       "remoteFunctionData": null,
       "compiledCloudFormationTemplate": {
@@ -80,6 +123,21 @@
                             "Fn::Sub": "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/Deploytemplate-12345Lambda:*:*"
                           }
                         ]
+                      },
+                      {
+                        "$ref": "$[\"service\"][\"provider\"][\"iamRoleStatements\"][0]"
+                      },
+                      {
+                        "$ref": "$[\"service\"][\"provider\"][\"iamRoleStatements\"][1]"
+                      },
+                      {
+                        "$ref": "$[\"service\"][\"provider\"][\"iamRoleStatements\"][2]"
+                      },
+                      {
+                        "$ref": "$[\"service\"][\"provider\"][\"iamRoleStatements\"][3]"
+                      },
+                      {
+                        "$ref": "$[\"service\"][\"provider\"][\"iamRoleStatements\"][4]"
                       }
                     ]
                   }
@@ -108,10 +166,10 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/testTemplate/dev/1520404042850-2018-03-07T06:27:22.850Z/testTemplate.zip"
+                "S3Key": "serverless/testTemplate/dev/1520835957763-2018-03-12T06:25:57.763Z/testTemplate.zip"
               },
               "FunctionName": "Deploytemplate-12345Lambda",
-              "Handler": "services/deploy_spa.lambda_handler",
+              "Handler": "services/py/deploy_spa.lambda_handler",
               "MemorySize": 1024,
               "Role": {
                 "Fn::GetAtt": [
@@ -123,8 +181,8 @@
               "Timeout": 6,
               "Environment": {
                 "Variables": {
-                  "S3_BUCKET": "template-12345-test-lambda-bucket",
-                  "S3_KEY": "deploy_spa"
+                  "S3_BUCKET": "template-12345-test-site-bucket",
+                  "S3_KEY": ""
                 }
               }
             },
@@ -133,14 +191,14 @@
               "IamRoleLambdaExecution"
             ]
           },
-          "DeployUnderscorespaLambdaVersionTzPOzHSZ2aQX1XM6yaqiJZvqufcbhQ4AEzBxJqpgNY": {
+          "DeployUnderscorespaLambdaVersionV2hLND6R83layURd20ZCGRpzCm2Kf8LSDfXb6xoyU": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "DeployUnderscorespaLambdaFunction"
               },
-              "CodeSha256": "05ZSMDy9p4hRmDBDw60WwFJ5BsirseUMwra7JtJdD34="
+              "CodeSha256": "4fJ5X2WLCEQyfHjBDC+5kk+oLylZiawSY4b7RVLIhhE="
             }
           },
           "CodeBuildProject": {
@@ -159,7 +217,7 @@
               },
               "Environment": {
                 "Type": "LINUX_CONTAINER",
-                "Image": "aws/codebuild/aws/codebuild/nodejs:7.0.0",
+                "Image": "aws/codebuild/nodejs:7.0.0",
                 "ComputeType": "BUILD_GENERAL1_SMALL"
               },
               "Source": {
@@ -261,6 +319,24 @@
                         ],
                         "Resource": "*",
                         "Effect": "Allow"
+                      },
+                      {
+                        "Action": [
+                          "lambda:ListFunctions",
+                          "lambda:ListVersionsByFunction",
+                          "lambda:GetEventSourceMapping",
+                          "lambda:ListTags",
+                          "lambda:GetFunction",
+                          "lambda:ListAliases",
+                          "lambda:ListEventSourceMappings",
+                          "lambda:GetAccountSettings",
+                          "lambda:GetFunctionConfiguration",
+                          "lambda:GetAlias",
+                          "lambda:GetPolicy",
+                          "lambda:InvokeFunction"
+                        ],
+                        "Effect": "Allow",
+                        "Resource": "*"
                       }
                     ],
                     "Version": "2012-10-17"
@@ -298,9 +374,9 @@
                       ],
                       "Configuration": {
                         "Owner": "steph-query",
-                        "Repo": "craft-serverless",
+                        "Repo": "craft-serverless-template",
                         "Branch": "master",
-                        "OAuthToken": "852aabcd8622a03e4e7fd3ea70c8de7307462b15"
+                        "OAuthToken": "29d5ad65ff5a7c7600ea27a617df92416cb7fc4a"
                       },
                       "RunOrder": 1
                     }
@@ -377,6 +453,103 @@
           },
           "PipelineBucket": {
             "Type": "AWS::S3::Bucket"
+          },
+          "CloudfrontLogBucket": {
+            "Type": "AWS::S3::Bucket",
+            "Properties": {
+              "BucketName": "cloudfront-template-test"
+            },
+            "DependsOn": [
+              "SiteBucket"
+            ]
+          },
+          "myDistribution": {
+            "Type": "AWS::CloudFront::Distribution",
+            "Properties": {
+              "DistributionConfig": {
+                "Origins": [
+                  {
+                    "DomainName": [
+                      {
+                        "Fn::GetAtt": [
+                          "SiteBucket",
+                          "DomainName"
+                        ]
+                      }
+                    ],
+                    "Id": "S3Origin",
+                    "S3OriginConfig": {
+                      "OriginAccessIdentity": ""
+                    }
+                  }
+                ],
+                "Enabled": "true",
+                "DefaultRootObject": "index.html",
+                "Logging": {
+                  "IncludeCookies": "false",
+                  "Bucket": "template-12345-test-site-bucket",
+                  "Prefix": ""
+                },
+                "DefaultCacheBehavior": {
+                  "AllowedMethods": [
+                    "GET",
+                    "HEAD"
+                  ],
+                  "TargetOriginId": "S3Origin",
+                  "ForwardedValues": {
+                    "QueryString": "false",
+                    "Cookies": {
+                      "Forward": "none"
+                    }
+                  },
+                  "ViewerProtocolPolicy": "allow-all"
+                },
+                "ViewerCertificate": {
+                  "CloudFrontDefaultCertificate": "true"
+                }
+              }
+            },
+            "DependsOn": [
+              "SiteBucket",
+              "CloudfrontLogBucket"
+            ]
+          },
+          "CloudfrontLogBucketPolicy": {
+            "Type": "AWS::S3::BucketPolicy",
+            "Properties": {
+              "Bucket": {
+                "Ref": "CloudfrontLogBucket"
+              },
+              "PolicyDocument": {
+                "Statement": [
+                  {
+                    "Sid": "ListReadWriteDeleteAccess",
+                    "Action": [
+                      "s3:ListBucket",
+                      "s3:GetObject",
+                      "s3:PutObject",
+                      "s3:DeleteObject"
+                    ],
+                    "Effect": "Allow",
+                    "Resource": [
+                      {
+                        "Fn::Join": [
+                          "",
+                          [
+                            "arn:aws:s3:::",
+                            {
+                              "Ref": "CloudfrontLogBucket"
+                            },
+                            "/*"
+                          ]
+                        ]
+                      }
+                    ],
+                    "Principal": "*"
+                  }
+                ]
+              }
+            }
           }
         },
         "Outputs": {
@@ -388,7 +561,7 @@
           "DeployUnderscorespaLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "DeployUnderscorespaLambdaVersionTzPOzHSZ2aQX1XM6yaqiJZvqufcbhQ4AEzBxJqpgNY"
+              "Ref": "DeployUnderscorespaLambdaVersionV2hLND6R83layURd20ZCGRpzCm2Kf8LSDfXb6xoyU"
             }
           }
         }
@@ -424,11 +597,11 @@
     "functions": {
       "deploy_spa": {
         "name": "Deploytemplate-12345Lambda",
-        "handler": "services/deploy_spa.lambda_handler",
+        "handler": "services/py/deploy_spa.lambda_handler",
         "runtime": "python2.7",
         "environment": {
-          "S3_BUCKET": "template-12345-test-lambda-bucket",
-          "S3_KEY": "deploy_spa"
+          "S3_BUCKET": "template-12345-test-site-bucket",
+          "S3_KEY": ""
         },
         "events": [],
         "package": {},
@@ -453,7 +626,7 @@
             },
             "Environment": {
               "Type": "LINUX_CONTAINER",
-              "Image": "aws/codebuild/aws/codebuild/nodejs:7.0.0",
+              "Image": "aws/codebuild/nodejs:7.0.0",
               "ComputeType": "BUILD_GENERAL1_SMALL"
             },
             "Source": {
@@ -555,6 +728,24 @@
                       ],
                       "Resource": "*",
                       "Effect": "Allow"
+                    },
+                    {
+                      "Action": [
+                        "lambda:ListFunctions",
+                        "lambda:ListVersionsByFunction",
+                        "lambda:GetEventSourceMapping",
+                        "lambda:ListTags",
+                        "lambda:GetFunction",
+                        "lambda:ListAliases",
+                        "lambda:ListEventSourceMappings",
+                        "lambda:GetAccountSettings",
+                        "lambda:GetFunctionConfiguration",
+                        "lambda:GetAlias",
+                        "lambda:GetPolicy",
+                        "lambda:InvokeFunction"
+                      ],
+                      "Effect": "Allow",
+                      "Resource": "*"
                     }
                   ],
                   "Version": "2012-10-17"
@@ -592,9 +783,9 @@
                     ],
                     "Configuration": {
                       "Owner": "steph-query",
-                      "Repo": "craft-serverless",
+                      "Repo": "craft-serverless-template",
                       "Branch": "master",
-                      "OAuthToken": "852aabcd8622a03e4e7fd3ea70c8de7307462b15"
+                      "OAuthToken": "29d5ad65ff5a7c7600ea27a617df92416cb7fc4a"
                     },
                     "RunOrder": 1
                   }
@@ -671,14 +862,111 @@
         },
         "PipelineBucket": {
           "Type": "AWS::S3::Bucket"
+        },
+        "CloudfrontLogBucket": {
+          "Type": "AWS::S3::Bucket",
+          "Properties": {
+            "BucketName": "cloudfront-template-test"
+          },
+          "DependsOn": [
+            "SiteBucket"
+          ]
+        },
+        "myDistribution": {
+          "Type": "AWS::CloudFront::Distribution",
+          "Properties": {
+            "DistributionConfig": {
+              "Origins": [
+                {
+                  "DomainName": [
+                    {
+                      "Fn::GetAtt": [
+                        "SiteBucket",
+                        "DomainName"
+                      ]
+                    }
+                  ],
+                  "Id": "S3Origin",
+                  "S3OriginConfig": {
+                    "OriginAccessIdentity": ""
+                  }
+                }
+              ],
+              "Enabled": "true",
+              "DefaultRootObject": "index.html",
+              "Logging": {
+                "IncludeCookies": "false",
+                "Bucket": "template-12345-test-site-bucket",
+                "Prefix": ""
+              },
+              "DefaultCacheBehavior": {
+                "AllowedMethods": [
+                  "GET",
+                  "HEAD"
+                ],
+                "TargetOriginId": "S3Origin",
+                "ForwardedValues": {
+                  "QueryString": "false",
+                  "Cookies": {
+                    "Forward": "none"
+                  }
+                },
+                "ViewerProtocolPolicy": "allow-all"
+              },
+              "ViewerCertificate": {
+                "CloudFrontDefaultCertificate": "true"
+              }
+            }
+          },
+          "DependsOn": [
+            "SiteBucket",
+            "CloudfrontLogBucket"
+          ]
+        },
+        "CloudfrontLogBucketPolicy": {
+          "Type": "AWS::S3::BucketPolicy",
+          "Properties": {
+            "Bucket": {
+              "Ref": "CloudfrontLogBucket"
+            },
+            "PolicyDocument": {
+              "Statement": [
+                {
+                  "Sid": "ListReadWriteDeleteAccess",
+                  "Action": [
+                    "s3:ListBucket",
+                    "s3:GetObject",
+                    "s3:PutObject",
+                    "s3:DeleteObject"
+                  ],
+                  "Effect": "Allow",
+                  "Resource": [
+                    {
+                      "Fn::Join": [
+                        "",
+                        [
+                          "arn:aws:s3:::",
+                          {
+                            "Ref": "CloudfrontLogBucket"
+                          },
+                          "/*"
+                        ]
+                      ]
+                    }
+                  ],
+                  "Principal": "*"
+                }
+              ]
+            }
+          }
         }
       },
       "Outputs": {}
     },
-    "artifact": "/Users/nick/Projects/project_templates/craft-serverless/.serverless/testTemplate.zip"
+    "artifact": "/Users/nick/Projects/project_templates/craft-serverless-template/.serverless/testTemplate.zip"
   },
   "package": {
-    "artifactDirectoryName": "serverless/testTemplate/dev/1520404042850-2018-03-07T06:27:22.850Z",
+    "artifactDirectoryName": "serverless/testTemplate/dev/1520835957763-2018-03-12T06:25:57.763Z",
     "artifact": "testTemplate.zip"
   }
 }

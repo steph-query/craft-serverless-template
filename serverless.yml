@@ -2,6 +2,33 @@ service: testTemplate
 provider:
   name: aws
   runtime: nodejs6.10
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "s3:ListBucket"
+      Resource: "arn:aws:s3:::*"
+    - Effect: "Allow"
+      Action:
+        - "s3:PutObject"
+      Resource: "arn:aws:s3:::*"
+    - Effect: Allow
+      Action:
+        - "logs:CreateLogGroup"
+        - "logs:CreateLogStream"
+        - "logs:PutLogEvents"
+      Resource: "arn:aws:logs:*:*:*"
+    - Effect: "Allow"
+      Action:
+        - "codepipeline:AcknowledgeJob"
+        - "codepipeline:GetJobDetails"
+        - "codepipeline:PollForJobs"
+        - "codepipeline:PutJobFailureResult"
+        - "codepipeline:PutJobSuccessResult"
+      Resource: "*"
+    - Effect: "Allow"
+      Action:
+        - "sns:Publish"
+      Resource: "arn:aws:sns:*"
   #stage:
     #prod: prod
     #test: test
@@ -18,20 +45,11 @@ plugins:
 functions:
   deploy_spa:
     name: Deploy${self:custom.serviceName}Lambda
-    handler: services/deploy_spa.lambda_handler
+    handler: services/py/deploy_spa.lambda_handler
     runtime: python2.7
     environment:
-      S3_BUCKET: ${self:custom.lambdaBucket}
-      S3_KEY: deploy_spa
-
-# you can add CloudFormation resource templates here
-# From the docs: https://serverless.com/framework/docs/providers/aws/guide/resources/
-#To have consistent naming in the CloudFormation Templates that get deployed we use a standard pattern:
-  # {Function Name}{Cloud Formation Resource Type}{Resource Name}{SequentialID or Random String}
-    # Function Name - This is optional for Resources that should be recreated when the function name gets changed. Those resources are also called function bound
-    # Cloud Formation Resource Type - E.g., S3Bucket
-    # Resource Name - An identifier for the specific resource, e.g. for an S3 Bucket the configured bucket name.
-    # SequentialID or Random String - For a few resources we need to add an optional sequential id or random string to identify them
+      S3_BUCKET: ${self:custom.siteBucketName}
+      S3_KEY: ''
 resources:
   Resources:
     CodeBuildProject: ${file(codebuild.yml):CodeBuildProject}
@@ -40,26 +58,7 @@ resources:
     Pipeline: ${file(codepipeline.yml):Pipeline}
     SiteBucket: ${file(codepipeline.yml):SiteBucket}
     PipelineBucket: ${file(codepipeline.yml):PipelineBucket}
+    CloudfrontLogBucket: ${file(cloudfront.yml):CloudfrontLogBucket}
+    myDistribution: ${file(cloudfront.yml):myDistribution}
+    CloudfrontLogBucketPolicy: ${file(cloudfront.yml):CloudfrontLogBucketPolicy}
 
-    #GithubEventSNSTopic: ${file(github.yml):GithubEventSNSTopic}
-    #GithubIAMUser: ${file(github.yml):GithubIAMUser}
-    #GithubIAMUserAccessKey: ${file(github.yml):GithubIAMUserAccessKey}
-    #GithubWebhookCustomResourceRole: ${file(github.yml):GithubWebhookCustomResourceRole}
-    #GithubWebhookCustomResource: ${file(github.yml):GithubWebhookCustomResource}
-    #GithubWebhook: ${file(github.yml):GithubWebhook}
-    #BuildStateNotifier: ${file(github.yml):BuildStateNotifier}
-    #WebhookHandlerExecutionRole: ${file(github.yml):WebhookHandlerExecutionRole}
-    #GithubWebhookHandler: ${file(github.yml):GithubWebhookHandler}
-    #LambdaExecutionRole: ${file(github.yml):LambdaExecutionRole}
-    #DeployUpdateEventRule: ${file(github.yml):DeployUpdateEventRule}
-  #Outputs:
-    #GithubEventSNSTopicArn:
-      #Value:
-        #"Fn::GetAtt": [GithubEventSNSTopic, Arn]
-      #Export:
-        #Name: ${self:custom.serviceName}:GithubEventSNSTopicArn
-    #GithubIAMUserName:
-      #Value:
-        #Ref: GithubIAMUser
-      #Export:
-        #Name: ${self:custom.serviceName}:GithubIAMUserName

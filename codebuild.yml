@@ -11,7 +11,7 @@ CodeBuildProject:
       Type: CODEPIPELINE
     Environment:
       Type: LINUX_CONTAINER
-      Image: "aws/codebuild/${self:custom.codeBuildRuntime}/${self:custom.codeBuildRuntimeVersion}"
+      Image: "aws/codebuild/nodejs:7.0.0"
       ComputeType: BUILD_GENERAL1_SMALL
     Source:
       Type: CODEPIPELINE

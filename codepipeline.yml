@@ -36,6 +36,21 @@ CodePipelineRole:
           - iam:PassRole
           Resource: "*"
           Effect: Allow
+        - Action:
+            - "lambda:ListFunctions"
+            - "lambda:ListVersionsByFunction"
+            - "lambda:GetEventSourceMapping"
+            - "lambda:ListTags"
+            - "lambda:GetFunction"
+            - "lambda:ListAliases"
+            - "lambda:ListEventSourceMappings"
+            - "lambda:GetAccountSettings"
+            - "lambda:GetFunctionConfiguration"
+            - "lambda:GetAlias"
+            - "lambda:GetPolicy"
+            - "lambda:InvokeFunction"
+          Effect: Allow
+          Resource: "*"
         Version: '2012-10-17'
 
 PipelineBucket:

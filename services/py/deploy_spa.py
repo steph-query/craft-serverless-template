@@ -11,8 +11,8 @@ def lambda_handler(event, context):
     S3_BUCKET = os.environ.get('S3_BUCKET')
     S3_KEY = os.environ.get('S3_KEY')
 
-    sns = boto3.resource("sns")
-    topic = sns.Topic(os.environ.get('SNS_TOPIC')
+    # sns = boto3.resource("sns")
+    # topic = sns.Topic(os.environ.get('SNS_TOPIC')
 
     location = {
         "bucketName": S3_BUCKET,
@@ -41,13 +41,15 @@ def lambda_handler(event, context):
                 index_bucket.Object(nm).Acl().put(ACL="public-read")
 
         print "Job done!"
-        topic.publish(Subject="I am a god", Message="Hurry up with my damn massage.")
+        # topic.publish(Subject="I am a god", Message="Hurry up with my damn massage.")
 
         if job:
             codepipeline = boto3.client("codepipeline")
             codepipeline.put_job_success_result(jobId=job["id"])
+        return "Done!"
     except:
-        topic.publish(Subject="DOH!", Message="Suckka got played!")
+        pass
+        # topic.publish(Subject="DOH!", Message="Suckka got played!")
 
     return "That's all folks!"
 

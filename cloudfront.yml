@@ -1,0 +1,62 @@
+myDistribution:
+  Type: 'AWS::CloudFront::Distribution'
+  Properties:
+    DistributionConfig:
+      Origins:
+        - DomainName:
+          - Fn::GetAtt:
+              - SiteBucket
+              - DomainName
+          Id: S3Origin
+          S3OriginConfig:
+            OriginAccessIdentity: ''
+      Enabled: 'true'
+      DefaultRootObject: index.html
+      Logging:
+        IncludeCookies: 'false'
+        Bucket: ${self:custom.siteBucketName}
+        Prefix: ''
+      DefaultCacheBehavior:
+        AllowedMethods:
+          - GET
+          - HEAD
+        TargetOriginId: S3Origin
+        ForwardedValues:
+          QueryString: 'false'
+          Cookies:
+            Forward: none
+        ViewerProtocolPolicy: allow-all
+      ViewerCertificate:
+        CloudFrontDefaultCertificate: 'true'
+  DependsOn:
+    - SiteBucket
+    - CloudfrontLogBucket
+CloudfrontLogBucket:
+  Type: 'AWS::S3::Bucket'
+  Properties:
+    BucketName: cloudfront-template-test
+  DependsOn:
+    - SiteBucket
+CloudfrontLogBucketPolicy:
+  Type: 'AWS::S3::BucketPolicy'
+  Properties:
+    Bucket:
+      Ref: CloudfrontLogBucket
+    PolicyDocument:
+      Statement:
+        - Sid: ListReadWriteDeleteAccess
+          Action:
+            - "s3:ListBucket"
+            - "s3:GetObject"
+            - "s3:PutObject"
+            - "s3:DeleteObject"
+          Effect: "Allow"
+          Resource:
+            - Fn::Join:
+              - ''
+              -
+                - 'arn:aws:s3:::'
+                - Ref: CloudfrontLogBucket
+                - '/*'
+          Principal: '*'
+
