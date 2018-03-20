@@ -23,7 +23,7 @@ def lambda_handler(event, context):
         job = event.get("CodePipeline.job")
         if job:
             for artifact in job["data"]["inputArtifacts"]:
-                if artifact["name"] == "MyAppBuild": # MyAppBuild is the default name for this step in CodePipeline
+                if artifact["name"] == "BuildOutput": # MyAppBuild is the default name for this step in CodePipeline
                     location = artifact["location"]["s3Location"]
 
         s3 = boto3.resource("s3", config=Config(signature_version="s3v4"))

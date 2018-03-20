@@ -2,46 +2,15 @@ service: testTemplate
 provider:
   name: aws
   runtime: nodejs6.10
-  iamRoleStatements:
-    - Effect: "Allow"
-      Action:
-        - "s3:ListBucket"
-      Resource: "arn:aws:s3:::*"
-    - Effect: "Allow"
-      Action:
-        - "s3:PutObject"
-      Resource: "arn:aws:s3:::*"
-    - Effect: Allow
-      Action:
-        - "logs:CreateLogGroup"
-        - "logs:CreateLogStream"
-        - "logs:PutLogEvents"
-      Resource: "arn:aws:logs:*:*:*"
-    - Effect: "Allow"
-      Action:
-        - "codepipeline:AcknowledgeJob"
-        - "codepipeline:GetJobDetails"
-        - "codepipeline:PollForJobs"
-        - "codepipeline:PutJobFailureResult"
-        - "codepipeline:PutJobSuccessResult"
-      Resource: "*"
-    - Effect: "Allow"
-      Action:
-        - "sns:Publish"
-      Resource: "arn:aws:sns:*"
   #stage:
     #prod: prod
     #test: test
     #dev: dev
   region: us-east-1
 custom:
-  serviceName: template-12345
+  serviceName: Template
   lambdaBucket: ${self:custom.serviceName}-test-lambda-bucket
-  codeBuildRuntime: "aws/codebuild"
-  codeBuildRuntimeVersion: "nodejs:7.0.0"
-  siteBucketName: ${self:custom.serviceName}-test-site-bucket
-plugins:
-  - serverless-pseudo-parameters
+  siteBucketName: tf-template-host-bucket
 functions:
   deploy_spa:
     name: Deploy${self:custom.serviceName}Lambda
@@ -52,13 +21,4 @@ functions:
       S3_KEY: ''
 resources:
   Resources:
-    CodeBuildProject: ${file(codebuild.yml):CodeBuildProject}
-    CodeBuildRole: ${file(codebuild.yml):CodeBuildRole}
-    CodePipelineRole: ${file(codepipeline.yml):CodePipelineRole}
-    Pipeline: ${file(codepipeline.yml):Pipeline}
-    SiteBucket: ${file(codepipeline.yml):SiteBucket}
-    PipelineBucket: ${file(codepipeline.yml):PipelineBucket}
-    CloudfrontLogBucket: ${file(cloudfront.yml):CloudfrontLogBucket}
-    myDistribution: ${file(cloudfront.yml):myDistribution}
-    CloudfrontLogBucketPolicy: ${file(cloudfront.yml):CloudfrontLogBucketPolicy}
-
+  Outputs:

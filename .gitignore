@@ -1,5 +1,5 @@
 # See http://help.github.com/ignore-files/ for more about ignoring files.
-
+.github_token
 # dependencies
 node_modules
 
@@ -14,3 +14,5 @@ build
 .env
 npm-debug.log
 sls.env
+
+.terraform

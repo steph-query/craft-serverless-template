@@ -10,49 +10,6 @@
       "variableSyntax": "\\${([ ~:a-zA-Z0-9._'\",\\-\\/\\(\\)]+?)}",
       "name": "aws",
       "runtime": "nodejs6.10",
-      "iamRoleStatements": [
-        {
-          "Effect": "Allow",
-          "Action": [
-            "s3:ListBucket"
-          ],
-          "Resource": "arn:aws:s3:::*"
-        },
-        {
-          "Effect": "Allow",
-          "Action": [
-            "s3:PutObject"
-          ],
-          "Resource": "arn:aws:s3:::*"
-        },
-        {
-          "Effect": "Allow",
-          "Action": [
-            "logs:CreateLogGroup",
-            "logs:CreateLogStream",
-            "logs:PutLogEvents"
-          ],
-          "Resource": "arn:aws:logs:*:*:*"
-        },
-        {
-          "Effect": "Allow",
-          "Action": [
-            "codepipeline:AcknowledgeJob",
-            "codepipeline:GetJobDetails",
-            "codepipeline:PollForJobs",
-            "codepipeline:PutJobFailureResult",
-            "codepipeline:PutJobSuccessResult"
-          ],
-          "Resource": "*"
-        },
-        {
-          "Effect": "Allow",
-          "Action": [
-            "sns:Publish"
-          ],
-          "Resource": "arn:aws:sns:*"
-        }
-      ],
       "versionFunctions": true,
       "remoteFunctionData": null,
       "compiledCloudFormationTemplate": {
@@ -65,7 +22,7 @@
           "DeployUnderscorespaLogGroup": {
             "Type": "AWS::Logs::LogGroup",
             "Properties": {
-              "LogGroupName": "/aws/lambda/Deploytemplate-12345Lambda"
+              "LogGroupName": "/aws/lambda/DeployTemplateLambda"
             }
           },
           "IamRoleLambdaExecution": {
@@ -109,7 +66,7 @@
                         ],
                         "Resource": [
                           {
-                            "Fn::Sub": "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/Deploytemplate-12345Lambda:*"
+                            "Fn::Sub": "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/DeployTemplateLambda:*"
                           }
                         ]
                       },
@@ -120,24 +77,9 @@
                         ],
                         "Resource": [
                           {
-                            "Fn::Sub": "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/Deploytemplate-12345Lambda:*:*"
+                            "Fn::Sub": "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/DeployTemplateLambda:*:*"
                           }
                         ]
-                      },
-                      {
-                        "$ref": "$[\"service\"][\"provider\"][\"iamRoleStatements\"][0]"
-                      },
-                      {
-                        "$ref": "$[\"service\"][\"provider\"][\"iamRoleStatements\"][1]"
-                      },
-                      {
-                        "$ref": "$[\"service\"][\"provider\"][\"iamRoleStatements\"][2]"
-                      },
-                      {
-                        "$ref": "$[\"service\"][\"provider\"][\"iamRoleStatements\"][3]"
-                      },
-                      {
-                        "$ref": "$[\"service\"][\"provider\"][\"iamRoleStatements\"][4]"
                       }
                     ]
                   }
@@ -150,9 +92,7 @@
                   [
                     "testTemplate",
                     "dev",
-                    {
-                      "Fn::Sub": "${AWS::Region}"
-                    },
+                    "us-east-1",
                     "lambdaRole"
                   ]
                 ]
@@ -166,9 +106,9 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/testTemplate/dev/1520835957763-2018-03-12T06:25:57.763Z/testTemplate.zip"
+                "S3Key": "serverless/testTemplate/dev/1521519418377-2018-03-20T04:16:58.377Z/testTemplate.zip"
               },
-              "FunctionName": "Deploytemplate-12345Lambda",
+              "FunctionName": "DeployTemplateLambda",
               "Handler": "services/py/deploy_spa.lambda_handler",
               "MemorySize": 1024,
               "Role": {
@@ -181,7 +121,7 @@
               "Timeout": 6,
               "Environment": {
                 "Variables": {
-                  "S3_BUCKET": "template-12345-test-site-bucket",
+                  "S3_BUCKET": "tf_template_host_bucket",
                   "S3_KEY": ""
                 }
               }
@@ -191,364 +131,14 @@
               "IamRoleLambdaExecution"
             ]
           },
-          "DeployUnderscorespaLambdaVersionV2hLND6R83layURd20ZCGRpzCm2Kf8LSDfXb6xoyU": {
+          "DeployUnderscorespaLambdaVersionMDR8ZmiA5FX8pUWpehGBUCdgo8LMjNqwvUz4eQMkMI4": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "DeployUnderscorespaLambdaFunction"
               },
-              "CodeSha256": "4fJ5X2WLCEQyfHjBDC+5kk+oLylZiawSY4b7RVLIhhE="
-            }
-          },
-          "CodeBuildProject": {
-            "Type": "AWS::CodeBuild::Project",
-            "Properties": {
-              "Name": "template-12345CodeBuild",
-              "Description": "This codebuild deploys template-12345!",
-              "ServiceRole": {
-                "Fn::GetAtt": [
-                  "CodeBuildRole",
-                  "Arn"
-                ]
-              },
-              "Artifacts": {
-                "Type": "CODEPIPELINE"
-              },
-              "Environment": {
-                "Type": "LINUX_CONTAINER",
-                "Image": "aws/codebuild/nodejs:7.0.0",
-                "ComputeType": "BUILD_GENERAL1_SMALL"
-              },
-              "Source": {
-                "Type": "CODEPIPELINE"
-              },
-              "TimeoutInMinutes": 15
-            }
-          },
-          "CodeBuildRole": {
-            "Type": "AWS::IAM::Role",
-            "Properties": {
-              "AssumeRolePolicyDocument": {
-                "Statement": [
-                  {
-                    "Effect": "Allow",
-                    "Principal": {
-                      "Service": [
-                        "codebuild.amazonaws.com"
-                      ]
-                    },
-                    "Action": [
-                      "sts:AssumeRole"
-                    ]
-                  }
-                ]
-              },
-              "Policies": [
-                {
-                  "PolicyName": "codebuild-service",
-                  "PolicyDocument": {
-                    "Statement": [
-                      {
-                        "Effect": "Allow",
-                        "Action": "*",
-                        "Resource": "*"
-                      }
-                    ],
-                    "Version": "2012-10-17"
-                  }
-                }
-              ]
-            }
-          },
-          "CodePipelineRole": {
-            "Type": "AWS::IAM::Role",
-            "Properties": {
-              "AssumeRolePolicyDocument": {
-                "Statement": [
-                  {
-                    "Effect": "Allow",
-                    "Principal": {
-                      "Service": [
-                        "codepipeline.amazonaws.com"
-                      ]
-                    },
-                    "Action": [
-                      "sts:AssumeRole"
-                    ]
-                  }
-                ]
-              },
-              "Path": "/",
-              "Policies": [
-                {
-                  "PolicyName": "codepipeline-service",
-                  "PolicyDocument": {
-                    "Statement": [
-                      {
-                        "Action": [
-                          "codebuild:*"
-                        ],
-                        "Resource": "*",
-                        "Effect": "Allow"
-                      },
-                      {
-                        "Action": [
-                          "s3:GetObject",
-                          "s3:GetObjectVersion",
-                          "s3:GetBucketVersioning"
-                        ],
-                        "Resource": "*",
-                        "Effect": "Allow"
-                      },
-                      {
-                        "Action": [
-                          "s3:PutObject"
-                        ],
-                        "Resource": [
-                          "arn:aws:s3:::codepipeline*"
-                        ],
-                        "Effect": "Allow"
-                      },
-                      {
-                        "Action": [
-                          "s3:*",
-                          "cloudformation:*",
-                          "ecs:*",
-                          "iam:PassRole"
-                        ],
-                        "Resource": "*",
-                        "Effect": "Allow"
-                      },
-                      {
-                        "Action": [
-                          "lambda:ListFunctions",
-                          "lambda:ListVersionsByFunction",
-                          "lambda:GetEventSourceMapping",
-                          "lambda:ListTags",
-                          "lambda:GetFunction",
-                          "lambda:ListAliases",
-                          "lambda:ListEventSourceMappings",
-                          "lambda:GetAccountSettings",
-                          "lambda:GetFunctionConfiguration",
-                          "lambda:GetAlias",
-                          "lambda:GetPolicy",
-                          "lambda:InvokeFunction"
-                        ],
-                        "Effect": "Allow",
-                        "Resource": "*"
-                      }
-                    ],
-                    "Version": "2012-10-17"
-                  }
-                }
-              ]
-            }
-          },
-          "Pipeline": {
-            "Type": "AWS::CodePipeline::Pipeline",
-            "Properties": {
-              "RoleArn": {
-                "Fn::GetAtt": [
-                  "CodePipelineRole",
-                  "Arn"
-                ]
-              },
-              "Stages": [
-                {
-                  "Name": "Source",
-                  "Actions": [
-                    {
-                      "InputArtifacts": [],
-                      "Name": "Source",
-                      "ActionTypeId": {
-                        "Category": "Source",
-                        "Owner": "ThirdParty",
-                        "Version": "1",
-                        "Provider": "GitHub"
-                      },
-                      "OutputArtifacts": [
-                        {
-                          "Name": "SourceOutput"
-                        }
-                      ],
-                      "Configuration": {
-                        "Owner": "steph-query",
-                        "Repo": "craft-serverless-template",
-                        "Branch": "master",
-                        "OAuthToken": "29d5ad65ff5a7c7600ea27a617df92416cb7fc4a"
-                      },
-                      "RunOrder": 1
-                    }
-                  ]
-                },
-                {
-                  "Name": "Build",
-                  "Actions": [
-                    {
-                      "Name": "Artifact",
-                      "ActionTypeId": {
-                        "Category": "Build",
-                        "Owner": "AWS",
-                        "Version": "1",
-                        "Provider": "CodeBuild"
-                      },
-                      "InputArtifacts": [
-                        {
-                          "Name": "SourceOutput"
-                        }
-                      ],
-                      "OutputArtifacts": [
-                        {
-                          "Name": "BuildOutput"
-                        }
-                      ],
-                      "Configuration": {
-                        "ProjectName": {
-                          "Ref": "CodeBuildProject"
-                        }
-                      },
-                      "RunOrder": 1
-                    }
-                  ]
-                },
-                {
-                  "Name": "Deploy",
-                  "Actions": [
-                    {
-                      "InputArtifacts": [],
-                      "Name": "Lambda",
-                      "ActionTypeId": {
-                        "Category": "Invoke",
-                        "Owner": "AWS",
-                        "Version": "1",
-                        "Provider": "Lambda"
-                      },
-                      "OutputArtifacts": [],
-                      "Configuration": {
-                        "FunctionName": "Deploytemplate-12345Lambda"
-                      },
-                      "RunOrder": 1
-                    }
-                  ]
-                }
-              ],
-              "ArtifactStore": {
-                "Type": "S3",
-                "Location": {
-                  "Ref": "PipelineBucket"
-                }
-              }
-            }
-          },
-          "SiteBucket": {
-            "Type": "AWS::S3::Bucket",
-            "Properties": {
-              "AccessControl": "PublicRead",
-              "BucketName": "template-12345-test-site-bucket",
-              "WebsiteConfiguration": {
-                "IndexDocument": "index.html"
-              }
-            }
-          },
-          "PipelineBucket": {
-            "Type": "AWS::S3::Bucket"
-          },
-          "CloudfrontLogBucket": {
-            "Type": "AWS::S3::Bucket",
-            "Properties": {
-              "BucketName": "cloudfront-template-test"
-            },
-            "DependsOn": [
-              "SiteBucket"
-            ]
-          },
-          "myDistribution": {
-            "Type": "AWS::CloudFront::Distribution",
-            "Properties": {
-              "DistributionConfig": {
-                "Origins": [
-                  {
-                    "DomainName": [
-                      {
-                        "Fn::GetAtt": [
-                          "SiteBucket",
-                          "DomainName"
-                        ]
-                      }
-                    ],
-                    "Id": "S3Origin",
-                    "S3OriginConfig": {
-                      "OriginAccessIdentity": ""
-                    }
-                  }
-                ],
-                "Enabled": "true",
-                "DefaultRootObject": "index.html",
-                "Logging": {
-                  "IncludeCookies": "false",
-                  "Bucket": "template-12345-test-site-bucket",
-                  "Prefix": ""
-                },
-                "DefaultCacheBehavior": {
-                  "AllowedMethods": [
-                    "GET",
-                    "HEAD"
-                  ],
-                  "TargetOriginId": "S3Origin",
-                  "ForwardedValues": {
-                    "QueryString": "false",
-                    "Cookies": {
-                      "Forward": "none"
-                    }
-                  },
-                  "ViewerProtocolPolicy": "allow-all"
-                },
-                "ViewerCertificate": {
-                  "CloudFrontDefaultCertificate": "true"
-                }
-              }
-            },
-            "DependsOn": [
-              "SiteBucket",
-              "CloudfrontLogBucket"
-            ]
-          },
-          "CloudfrontLogBucketPolicy": {
-            "Type": "AWS::S3::BucketPolicy",
-            "Properties": {
-              "Bucket": {
-                "Ref": "CloudfrontLogBucket"
-              },
-              "PolicyDocument": {
-                "Statement": [
-                  {
-                    "Sid": "ListReadWriteDeleteAccess",
-                    "Action": [
-                      "s3:ListBucket",
-                      "s3:GetObject",
-                      "s3:PutObject",
-                      "s3:DeleteObject"
-                    ],
-                    "Effect": "Allow",
-                    "Resource": [
-                      {
-                        "Fn::Join": [
-                          "",
-                          [
-                            "arn:aws:s3:::",
-                            {
-                              "Ref": "CloudfrontLogBucket"
-                            },
-                            "/*"
-                          ]
-                        ]
-                      }
-                    ],
-                    "Principal": "*"
-                  }
-                ]
-              }
+              "CodeSha256": "yEi5UQvl66pKugMYwv8Oelh2V5gWVreBBlLWm13vIqk="
             }
           }
         },
@@ -561,7 +151,7 @@
           "DeployUnderscorespaLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "DeployUnderscorespaLambdaVersionV2hLND6R83layURd20ZCGRpzCm2Kf8LSDfXb6xoyU"
+              "Ref": "DeployUnderscorespaLambdaVersionMDR8ZmiA5FX8pUWpehGBUCdgo8LMjNqwvUz4eQMkMI4"
             }
           }
         }
@@ -585,22 +175,17 @@
       "vpc": {}
     },
     "custom": {
-      "serviceName": "template-12345",
-      "lambdaBucket": "template-12345-test-lambda-bucket",
-      "codeBuildRuntime": "aws/codebuild",
-      "codeBuildRuntimeVersion": "nodejs:7.0.0",
-      "siteBucketName": "template-12345-test-site-bucket"
+      "serviceName": "Template",
+      "lambdaBucket": "Template-test-lambda-bucket",
+      "siteBucketName": "tf_template_host_bucket"
     },
-    "plugins": [
-      "serverless-pseudo-parameters"
-    ],
     "functions": {
       "deploy_spa": {
-        "name": "Deploytemplate-12345Lambda",
+        "name": "DeployTemplateLambda",
         "handler": "services/py/deploy_spa.lambda_handler",
         "runtime": "python2.7",
         "environment": {
-          "S3_BUCKET": "template-12345-test-site-bucket",
+          "S3_BUCKET": "tf_template_host_bucket",
           "S3_KEY": ""
         },
         "events": [],
@@ -609,364 +194,13 @@
       }
     },
     "resources": {
-      "Resources": {
-        "CodeBuildProject": {
-          "Type": "AWS::CodeBuild::Project",
-          "Properties": {
-            "Name": "template-12345CodeBuild",
-            "Description": "This codebuild deploys template-12345!",
-            "ServiceRole": {
-              "Fn::GetAtt": [
-                "CodeBuildRole",
-                "Arn"
-              ]
-            },
-            "Artifacts": {
-              "Type": "CODEPIPELINE"
-            },
-            "Environment": {
-              "Type": "LINUX_CONTAINER",
-              "Image": "aws/codebuild/nodejs:7.0.0",
-              "ComputeType": "BUILD_GENERAL1_SMALL"
-            },
-            "Source": {
-              "Type": "CODEPIPELINE"
-            },
-            "TimeoutInMinutes": 15
-          }
-        },
-        "CodeBuildRole": {
-          "Type": "AWS::IAM::Role",
-          "Properties": {
-            "AssumeRolePolicyDocument": {
-              "Statement": [
-                {
-                  "Effect": "Allow",
-                  "Principal": {
-                    "Service": [
-                      "codebuild.amazonaws.com"
-                    ]
-                  },
-                  "Action": [
-                    "sts:AssumeRole"
-                  ]
-                }
-              ]
-            },
-            "Policies": [
-              {
-                "PolicyName": "codebuild-service",
-                "PolicyDocument": {
-                  "Statement": [
-                    {
-                      "Effect": "Allow",
-                      "Action": "*",
-                      "Resource": "*"
-                    }
-                  ],
-                  "Version": "2012-10-17"
-                }
-              }
-            ]
-          }
-        },
-        "CodePipelineRole": {
-          "Type": "AWS::IAM::Role",
-          "Properties": {
-            "AssumeRolePolicyDocument": {
-              "Statement": [
-                {
-                  "Effect": "Allow",
-                  "Principal": {
-                    "Service": [
-                      "codepipeline.amazonaws.com"
-                    ]
-                  },
-                  "Action": [
-                    "sts:AssumeRole"
-                  ]
-                }
-              ]
-            },
-            "Path": "/",
-            "Policies": [
-              {
-                "PolicyName": "codepipeline-service",
-                "PolicyDocument": {
-                  "Statement": [
-                    {
-                      "Action": [
-                        "codebuild:*"
-                      ],
-                      "Resource": "*",
-                      "Effect": "Allow"
-                    },
-                    {
-                      "Action": [
-                        "s3:GetObject",
-                        "s3:GetObjectVersion",
-                        "s3:GetBucketVersioning"
-                      ],
-                      "Resource": "*",
-                      "Effect": "Allow"
-                    },
-                    {
-                      "Action": [
-                        "s3:PutObject"
-                      ],
-                      "Resource": [
-                        "arn:aws:s3:::codepipeline*"
-                      ],
-                      "Effect": "Allow"
-                    },
-                    {
-                      "Action": [
-                        "s3:*",
-                        "cloudformation:*",
-                        "ecs:*",
-                        "iam:PassRole"
-                      ],
-                      "Resource": "*",
-                      "Effect": "Allow"
-                    },
-                    {
-                      "Action": [
-                        "lambda:ListFunctions",
-                        "lambda:ListVersionsByFunction",
-                        "lambda:GetEventSourceMapping",
-                        "lambda:ListTags",
-                        "lambda:GetFunction",
-                        "lambda:ListAliases",
-                        "lambda:ListEventSourceMappings",
-                        "lambda:GetAccountSettings",
-                        "lambda:GetFunctionConfiguration",
-                        "lambda:GetAlias",
-                        "lambda:GetPolicy",
-                        "lambda:InvokeFunction"
-                      ],
-                      "Effect": "Allow",
-                      "Resource": "*"
-                    }
-                  ],
-                  "Version": "2012-10-17"
-                }
-              }
-            ]
-          }
-        },
-        "Pipeline": {
-          "Type": "AWS::CodePipeline::Pipeline",
-          "Properties": {
-            "RoleArn": {
-              "Fn::GetAtt": [
-                "CodePipelineRole",
-                "Arn"
-              ]
-            },
-            "Stages": [
-              {
-                "Name": "Source",
-                "Actions": [
-                  {
-                    "InputArtifacts": [],
-                    "Name": "Source",
-                    "ActionTypeId": {
-                      "Category": "Source",
-                      "Owner": "ThirdParty",
-                      "Version": "1",
-                      "Provider": "GitHub"
-                    },
-                    "OutputArtifacts": [
-                      {
-                        "Name": "SourceOutput"
-                      }
-                    ],
-                    "Configuration": {
-                      "Owner": "steph-query",
-                      "Repo": "craft-serverless-template",
-                      "Branch": "master",
-                      "OAuthToken": "29d5ad65ff5a7c7600ea27a617df92416cb7fc4a"
-                    },
-                    "RunOrder": 1
-                  }
-                ]
-              },
-              {
-                "Name": "Build",
-                "Actions": [
-                  {
-                    "Name": "Artifact",
-                    "ActionTypeId": {
-                      "Category": "Build",
-                      "Owner": "AWS",
-                      "Version": "1",
-                      "Provider": "CodeBuild"
-                    },
-                    "InputArtifacts": [
-                      {
-                        "Name": "SourceOutput"
-                      }
-                    ],
-                    "OutputArtifacts": [
-                      {
-                        "Name": "BuildOutput"
-                      }
-                    ],
-                    "Configuration": {
-                      "ProjectName": {
-                        "Ref": "CodeBuildProject"
-                      }
-                    },
-                    "RunOrder": 1
-                  }
-                ]
-              },
-              {
-                "Name": "Deploy",
-                "Actions": [
-                  {
-                    "InputArtifacts": [],
-                    "Name": "Lambda",
-                    "ActionTypeId": {
-                      "Category": "Invoke",
-                      "Owner": "AWS",
-                      "Version": "1",
-                      "Provider": "Lambda"
-                    },
-                    "OutputArtifacts": [],
-                    "Configuration": {
-                      "FunctionName": "Deploytemplate-12345Lambda"
-                    },
-                    "RunOrder": 1
-                  }
-                ]
-              }
-            ],
-            "ArtifactStore": {
-              "Type": "S3",
-              "Location": {
-                "Ref": "PipelineBucket"
-              }
-            }
-          }
-        },
-        "SiteBucket": {
-          "Type": "AWS::S3::Bucket",
-          "Properties": {
-            "AccessControl": "PublicRead",
-            "BucketName": "template-12345-test-site-bucket",
-            "WebsiteConfiguration": {
-              "IndexDocument": "index.html"
-            }
-          }
-        },
-        "PipelineBucket": {
-          "Type": "AWS::S3::Bucket"
-        },
-        "CloudfrontLogBucket": {
-          "Type": "AWS::S3::Bucket",
-          "Properties": {
-            "BucketName": "cloudfront-template-test"
-          },
-          "DependsOn": [
-            "SiteBucket"
-          ]
-        },
-        "myDistribution": {
-          "Type": "AWS::CloudFront::Distribution",
-          "Properties": {
-            "DistributionConfig": {
-              "Origins": [
-                {
-                  "DomainName": [
-                    {
-                      "Fn::GetAtt": [
-                        "SiteBucket",
-                        "DomainName"
-                      ]
-                    }
-                  ],
-                  "Id": "S3Origin",
-                  "S3OriginConfig": {
-                    "OriginAccessIdentity": ""
-                  }
-                }
-              ],
-              "Enabled": "true",
-              "DefaultRootObject": "index.html",
-              "Logging": {
-                "IncludeCookies": "false",
-                "Bucket": "template-12345-test-site-bucket",
-                "Prefix": ""
-              },
-              "DefaultCacheBehavior": {
-                "AllowedMethods": [
-                  "GET",
-                  "HEAD"
-                ],
-                "TargetOriginId": "S3Origin",
-                "ForwardedValues": {
-                  "QueryString": "false",
-                  "Cookies": {
-                    "Forward": "none"
-                  }
-                },
-                "ViewerProtocolPolicy": "allow-all"
-              },
-              "ViewerCertificate": {
-                "CloudFrontDefaultCertificate": "true"
-              }
-            }
-          },
-          "DependsOn": [
-            "SiteBucket",
-            "CloudfrontLogBucket"
-          ]
-        },
-        "CloudfrontLogBucketPolicy": {
-          "Type": "AWS::S3::BucketPolicy",
-          "Properties": {
-            "Bucket": {
-              "Ref": "CloudfrontLogBucket"
-            },
-            "PolicyDocument": {
-              "Statement": [
-                {
-                  "Sid": "ListReadWriteDeleteAccess",
-                  "Action": [
-                    "s3:ListBucket",
-                    "s3:GetObject",
-                    "s3:PutObject",
-                    "s3:DeleteObject"
-                  ],
-                  "Effect": "Allow",
-                  "Resource": [
-                    {
-                      "Fn::Join": [
-                        "",
-                        [
-                          "arn:aws:s3:::",
-                          {
-                            "Ref": "CloudfrontLogBucket"
-                          },
-                          "/*"
-                        ]
-                      ]
-                    }
-                  ],
-                  "Principal": "*"
-                }
-              ]
-            }
-          }
-        }
-      },
+      "Resources": {},
       "Outputs": {}
     },
     "artifact": "/Users/nick/Projects/project_templates/craft-serverless-template/.serverless/testTemplate.zip"
   },
   "package": {
-    "artifactDirectoryName": "serverless/testTemplate/dev/1520835957763-2018-03-12T06:25:57.763Z",
+    "artifactDirectoryName": "serverless/testTemplate/dev/1521519418377-2018-03-20T04:16:58.377Z",
     "artifact": "testTemplate.zip"
   }
 }
