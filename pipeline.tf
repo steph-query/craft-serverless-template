@@ -47,7 +47,6 @@ resource "aws_iam_role_policy" "codepipeline_policy" {
     {
       "Effect":"Allow",
       "Action": [
-        "s3:*",
         "lambda:ListFunctions",
         "lambda:ListVersionsByFunction",
         "lambda:GetEventSourceMapping",
@@ -62,7 +61,7 @@ resource "aws_iam_role_policy" "codepipeline_policy" {
         "lambda:InvokeFunction"
       ],
       "Resource": [
-        "${var.aws_lambda_function}"
+        "*"
       ]
     },
     {

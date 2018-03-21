@@ -27,33 +27,28 @@ resource "aws_acm_certificate" "cert" {
 
 resource "aws_acm_certificate_validation" "cert" {
   certificate_arn = "${aws_acm_certificate.cert.arn}"
-  validation_record_fqdns = ["${aws_route53_record.domain.fqdn}"]
+  validation_record_fqdns = ["${aws_route53_record.cert_validation.fqdn}"]
 }
 
-resource "aws_route53_record" "domain" {
+resource "aws_route53_record" "cert_validation" {
    name = "${aws_acm_certificate.cert.domain_validation_options.0.resource_record_name}"
    zone_id = "${var.route53_domain_zoneid}"
    type = "${aws_acm_certificate.cert.domain_validation_options.0.resource_record_type}"
    records = ["${aws_acm_certificate.cert.domain_validation_options.0.resource_record_value}"]
    ttl = 60
-   #alias {
-     #name = "${aws_cloudfront_distribution.s3_distribution.domain_name}"
-     #zone_id = "${aws_cloudfront_distribution.s3_distribution.hosted_zone_id}"
-     #evaluate_target_health = true
-   #}
+}
+
+
+resource "aws_route53_record" "domain" {
+   name = "${var.route53_domain_name}"
+   zone_id = "${var.route53_domain_zoneid}"
+   type = "A"
+   alias {
+     name = "${aws_cloudfront_distribution.s3_distribution.domain_name}"
+     zone_id = "${aws_cloudfront_distribution.s3_distribution.hosted_zone_id}"
+     evaluate_target_health = true
+   }
  }
-
-
-#resource "aws_route53_record" "domain" {
-   #name = "${var.route53_domain_name}"
-   #zone_id = "${var.route53_domain_zoneid}"
-   #type = "A"
-   #alias {
-     #name = "${aws_cloudfront_distribution.s3_distribution.domain_name}"
-     #zone_id = "${aws_cloudfront_distribution.s3_distribution.hosted_zone_id}"
-     #evaluate_target_health = true
-   #}
- #}
 
 resource "aws_cloudfront_distribution" "s3_distribution" {
   origin {
