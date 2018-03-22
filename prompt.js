@@ -4,6 +4,16 @@ const prompts = require('prompts');
 (async function () {
   const questions = [
     {
+      name: 'AWS_ACCESS_KEY_ID',
+      type: 'text',
+      message: 'What is your AWS Access Key?'
+    },
+    {
+      name: 'AWS_SECRET_ACCESS_KEY',
+      type: 'text',
+      message: 'What is your AWS Secret Key?'
+    },
+    {
       name: 'project_name',
       type: 'text',
       message: 'What is the name of your project?'
