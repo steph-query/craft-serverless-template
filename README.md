@@ -29,6 +29,7 @@ Create a fullstack single page application using the serverless framework! This 
 ## Getting Started
 - `git clone git@github.com:steph-query/craft-serverless-template.git`
 - `./setup.sh`
+
 This step will take you through the `Prompts.js` CLI. Give some thought to how you want your cloud assets named. It will set these values in your environment for Terraform to orchestrate your provisioning.
 
 ## Deployment
