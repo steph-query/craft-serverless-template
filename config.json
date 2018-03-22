@@ -1,0 +1,1 @@
+{"project_name":"sweetness","github_username":"slicknick","github_token":"doofufoosudes","github_repo":"sweetness","choose_codebuild_image":false,"site_bucket_name":"sweet-ness-site","s3_pipeline_bucket":"sweet-ness-pipeline","route53_domain_name":["sweetness.com"],"route53_domain_zoneid":"SOMEZONE"}

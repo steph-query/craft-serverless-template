@@ -3,13 +3,13 @@ provider "aws" {
   version = ">=1.9.0"
 }
 
-resource "aws_s3_bucket" "template" {
-  bucket = "slick-nicks-test-bucket"
+resource "aws_s3_bucket" "pipeline" {
+  bucket = "${var.s3_pipeline_bucket}"
   acl    = "private"
 }
 
-resource "aws_iam_role" "template" {
-  name = "template-role"
+resource "aws_iam_role" "pipeline" {
+  name = "${var.project_name}-role"
 
   assume_role_policy = <<EOF
 {
@@ -29,7 +29,7 @@ EOF
 
 resource "aws_iam_role_policy" "codepipeline_policy" {
   name = "codepipeline_policy"
-  role = "${aws_iam_role.template.id}"
+  role = "${aws_iam_role.pipeline.id}"
   policy = <<EOF
 {
   "Version": "2012-10-17",
@@ -40,8 +40,8 @@ resource "aws_iam_role_policy" "codepipeline_policy" {
         "s3:*"
       ],
       "Resource": [
-        "${aws_s3_bucket.template.arn}",
-        "${aws_s3_bucket.template.arn}/*"
+        "${aws_s3_bucket.pipeline.arn}",
+        "${aws_s3_bucket.pipeline.arn}/*"
       ]
     },
     {
@@ -79,12 +79,12 @@ resource "aws_iam_role_policy" "codepipeline_policy" {
 EOF
 }
 
-resource "aws_codepipeline" "template" {
+resource "aws_codepipeline" "project" {
   name     = "tf-template-pipeline"
-  role_arn = "${aws_iam_role.template.arn}"
+  role_arn = "${aws_iam_role.pipeline.arn}"
 
   artifact_store {
-    location = "${aws_s3_bucket.template.bucket}"
+    location = "${aws_s3_bucket.pipeline.bucket}"
     type     = "S3"
   }
 
@@ -100,9 +100,9 @@ resource "aws_codepipeline" "template" {
       output_artifacts = ["MyApp"]
 
       configuration {
-        Owner      = "steph-query"
-        Repo       = "craft-serverless-template"
-        Branch     = "master"
+        Owner      = "${var.github_username}"
+        Repo       = "${var.github_repo}"
+        Branch     = "${var.github_branch}"
       }
     }
   }
@@ -120,7 +120,7 @@ resource "aws_codepipeline" "template" {
       version         = "1"
 
       configuration {
-        ProjectName = "${aws_codebuild_project.template.name}"
+        ProjectName = "${aws_codebuild_project.project.name}"
       }
     }
   }
@@ -137,7 +137,7 @@ resource "aws_codepipeline" "template" {
       version         = "1"
 
       configuration {
-        FunctionName = "${var.aws_lambda_function}"
+        FunctionName = "Deploy${var.project_name}Lambda"
       }
     }
   }
@@ -187,8 +187,8 @@ resource "aws_iam_policy" "codebuild_policy" {
         "s3:*"
       ],
       "Resource": [
-        "${aws_s3_bucket.template.arn}",
-        "${aws_s3_bucket.template.arn}/*"
+        "${aws_s3_bucket.pipeline.arn}",
+        "${aws_s3_bucket.pipeline.arn}/*"
       ]
     }
   ]
@@ -202,9 +202,9 @@ resource "aws_iam_policy_attachment" "codebuild_policy_attachment" {
   roles      = ["${aws_iam_role.codebuild_role.id}"]
 }
 
-resource "aws_codebuild_project" "template" {
-  name         = "codebuild_template"
-  description  = "test_codebuild_project"
+resource "aws_codebuild_project" "project" {
+  name         = "${var.project_name}-codebuild-project"
+  description  = "Codebuild project for ${var.project_name}"
   build_timeout      = "15"
   service_role = "${aws_iam_role.codebuild_role.arn}"
 
@@ -214,7 +214,7 @@ resource "aws_codebuild_project" "template" {
 
   environment {
     compute_type = "BUILD_GENERAL1_SMALL"
-    image        = "aws/codebuild/nodejs:6.3.1"
+    image        = "${var.codebuild_image}"
     type         = "LINUX_CONTAINER"
   }
 
@@ -227,7 +227,3 @@ resource "aws_codebuild_project" "template" {
   }
 }
 
-
-
-variable "aws_lambda_function" {
-}

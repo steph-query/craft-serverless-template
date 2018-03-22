@@ -2,18 +2,39 @@ Create a fullstack single page application using the serverless framework! This 
 
 ## Tweaks I made to the fork
 
-- Initialized a serverless framework project.
+- Initialized a serverless framework project for easy backend services.
 - Added a `services` directory to deliniate the react application from the serverless services.
 - Added `styled-components` to the `package.json`, because I never want to be without it again.
 - Added a the directory `src/utils` to keep API and global style vars for the design library.
+- Automated the entire CI/CD pipeline with Terraform.
+- Used `prompts.js` for easy setup and configuration. Just follow the CLI to get Terraform all set up!
+
+
+**BEWARE** -- THIS WILL COST YOU MONEY. IT WILL SPIN UP THE FOLLOWING AWS RESOURCES:
+
+- CodePipeline pipeline
+- CodeBuild project
+- CloudFront distribution
+- s3 buckets for pipeline and web hosting
+- Lambda for deployment + whatever extra lambdas you define in `serverless.yml` for your backend.
+- DNS records
+- SSL certificate
+
+## Prerequisites
+- You must already have an AWS account. Ideally, you have a user specific to Terraform so you can manage permissions for a specific set of provisioning keys.
+- A domain registered and pointing at Route53. One of the configuration inputs is the hosted zone id. You'll need to paste this into the prompt for the CloudFormation distribution to work.
+- Terraform
+- Node.js version with async/await
 
 ## Getting Started
-
-You need to set a couple environment variables: `SLS_PROJECT` and `SLS_REGION`. When running SLS deploy, you must
+`git clone git@github.com:steph-query/craft-serverless-template.git`
+`./setup.sh`
+This step will take you through the `Prompts.js` CLI. Give some thought to how you want your cloud assets named. It will set these values in your environment for Terraform to orchestrate your provisioning.
 
 ## Deployment
+The project extends the standard `serverless.yml` with a couple of Terraform configurations to set up AWS CodeBuild, CodePipeline, and CloudFront. The result is a github webhook that pull and builds your code, and with a final step that uses a lambda to push the artifact to the publicly hosted s3 bucket, upon which the CloudFront distribution sits behind the Route53 DNS.
 
-The project extends the standard `sls.yml` with a couple of CloudFormation templates to set up AWS CodeBuild and AWS CodePipeline.
+Please be advised, this can take a **long** time to set up, as we're setting up SSL for the project and must validate the certs after they are issued by AWS. This is not fast, potentially 30-45 minutes. No, it's not broken. You only have to do it once, so just be patient.
 
 *The good*:
 - You get CI for your SPA without having to deal with GUI bullcrap that comes with setting up all these goddam AWS services! Hooray!
@@ -23,16 +44,12 @@ The project extends the standard `sls.yml` with a couple of CloudFormation templ
 - You are locked into AWS... for now. (golden handcuffs!)
 
 ## Extending the serverless setup:
-
-- You can add more YAML files and reference in the same way we reference CodeBuild and CodePipeline configs in their respective files.
 - If you add a new serverless plugin to your setup, make sure to add it to `package.json`. That way it will automatically be included in AWS CodeBuild process, and you will not have to keep updating `buildpsec.yml`.
-
+- You can any cloud resources, such as a DynamoDB table for your backend in the `Resources` section of the `serverless.yml` file. You shouldn't need to mess with the Terraform stuff unless you really want to mess with the deployment process. YMMV.
 
 ## The frontend:
 
-
 ### A bit about styles
-
 With `styled-components`, you never really need to use stylesheets again. You can also get the benefits of SASS and CSS variables by storing them in an object, where they can be globally updated. This object lives in `src/utils/styles/index.js`, and makes for incredibly easy theme changes.
 
 Consider the following example:

@@ -8,11 +8,11 @@ resource "aws_s3_bucket" "site_bucket" {
 }
 
 resource "aws_s3_bucket" "logging" {
-  bucket = "template-cloundfront-logs"
+  bucket = "${var.project_name}-cloundfront-logs"
   acl    = "private"
 
   tags {
-    Name = "template-cloudfront-logs"
+    Name = "${var.project_name}-cloudfront-logs"
   }
 }
 
@@ -39,8 +39,9 @@ resource "aws_route53_record" "cert_validation" {
 }
 
 
-resource "aws_route53_record" "domain" {
-   name = "${var.route53_domain_name}"
+resource "aws_route53_record" "www" {
+  count = "${length(var.route53_domains)+1}"
+   name = "${var.route53_domains[count.index]}"
    zone_id = "${var.route53_domain_zoneid}"
    type = "A"
    alias {
@@ -65,13 +66,13 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
 
   enabled             = true
   is_ipv6_enabled     = true
-  comment             = "template distribution"
+  comment             = "${var.project_name} distribution"
   default_root_object = "index.html"
 
   logging_config {
     include_cookies = false
     bucket          = "${aws_s3_bucket.logging.bucket_domain_name}"
-    prefix          = "template"
+    prefix          = "${project_name}"
   }
 
   default_cache_behavior {
@@ -110,17 +111,5 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
     acm_certificate_arn = "${aws_acm_certificate_validation.cert.certificate_arn}"
     ssl_support_method = "sni-only"
   }
-}
-
-variable "site_bucket_name" {
-  default = "tf-template-host-bucket"
-}
-
-variable "route53_domain_name" {
-  default = "template.grassfeddata.com"
-}
-
-variable "route53_domain_zoneid" {
-  default = "ZBQFLJSFKZEB4"
 }
 
