@@ -7,7 +7,7 @@ Create a fullstack single page application using the serverless framework! This 
 - Added `styled-components` to the `package.json`, because I never want to be without it again.
 - Added a the directory `src/utils` to keep API and global style vars for the design library.
 - Automated the entire CI/CD pipeline with Terraform.
-- Used `prompts.js` for easy setup and configuration. Just follow the CLI to get Terraform all set up!
+- Used [prompts.js](https://github.com/terkelg/prompts)  for easy setup and configuration. Just follow the CLI to get Terraform all set up!
 
 
 **BEWARE** -- THIS WILL COST YOU MONEY. IT WILL SPIN UP THE FOLLOWING AWS RESOURCES:
