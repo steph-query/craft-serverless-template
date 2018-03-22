@@ -33,7 +33,7 @@ Create a fullstack single page application using the serverless framework! This 
 This step will take you through the `Prompts.js` CLI. Give some thought to how you want your cloud assets named. It will set these values in your environment for Terraform to orchestrate your provisioning.
 
 ## Deployment
-The project extends the standard `serverless.yml` with a couple of Terraform configurations to set up AWS CodeBuild, CodePipeline, and CloudFront. The result is a github webhook that pull and builds your code, and with a final step that uses a lambda to push the artifact to the publicly hosted s3 bucket, upon which the CloudFront distribution sits behind the Route53 DNS.
+The project extends the standard `serverless.yml` with a couple of Terraform configurations to set up AWS CodeBuild, CodePipeline, and CloudFront. The result is a github webhook that pulls and builds your code, and with a final step that uses a lambda to push the artifact to the publicly hosted s3 bucket, upon which the CloudFront distribution sits behind the Route53 DNS. Because the Lambda is defined in the serverless configuration, you need to run `sls deploy` first, or Terraform won't be able to find the lambda function, aka the last step in the deployment pipeline.
 
 Please be advised, this can take a **long** time to set up, as we're setting up SSL for the project and must validate the certs after they are issued by AWS. This is not fast, potentially 30-45 minutes. No, it's not broken. You only have to do it once, so just be patient.
 
