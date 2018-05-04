@@ -16,5 +16,6 @@ npm-debug.log
 sls.env
 
 .terraform
+*tfstate*
 .serverless
 .env
