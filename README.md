@@ -3,12 +3,11 @@ Create a fullstack single page application using the serverless framework! This 
 ## Tweaks I made to the fork
 
 - Initialized a serverless framework project for easy backend services.
-- Added a `services` directory to deliniate the react application from the serverless services.
+- Added a `services` directory to deliniate the react application from the serverless functions.
 - Added `styled-components` to the `package.json`, because I never want to be without it again.
 - Added a the directory `src/utils` to keep API and global style vars for the design library.
 - Automated the entire CI/CD pipeline with Terraform.
 - Used [prompts.js](https://github.com/terkelg/prompts)  for easy setup and configuration. Just follow the CLI to get Terraform all set up!
-
 
 **BEWARE** -- THIS WILL COST YOU MONEY. IT WILL SPIN UP THE FOLLOWING AWS RESOURCES:
 
@@ -22,18 +21,32 @@ Create a fullstack single page application using the serverless framework! This 
 
 ## Prerequisites
 - You must already have an AWS account. Ideally, you have a user specific to Terraform so you can manage permissions for a specific set of provisioning keys.
-- A domain registered and pointing at Route53. One of the configuration inputs is the hosted zone id. You'll need to paste this into the prompt for the CloudFormation distribution to work.
+- A domain registered with Route53 or pointing at a registered Route53 domain. One of the configuration inputs is the hosted zone id. You'll need to paste this into the prompt for the CloudFormation distribution to work.
 - Terraform
 - Node.js version with async/await
 
 ## Getting Started
-- `git clone git@github.com:steph-query/craft-serverless-template.git`
-- `./setup.sh`
+```
+npm install -g serverless
+npm install -g craftool
+craft {{ AppName }} https://github.com/steph-query/craft-serverless-template/archive/master.zip
+```
 
-This step will take you through the `Prompts.js` CLI. Give some thought to how you want your cloud assets named. It will set these values in your environment for Terraform to orchestrate your provisioning.
+You'll need to `cd` in and initialize your git repo before running 
+```
+npm install
+./setup.sh
+```
+
+This step will take you through the `Prompts.js` CLI. Give some thought to how you want your cloud assets named. It will set these values in your environment for Terraform to orchestrate your provisioning. If you decide you don't want all the cloud resources, you can hack the terraform files as needed. PR's welcome!
+
+From there you can just start working on your react app and update `package.json` as needed.
 
 ## Deployment
-The project extends the standard `serverless.yml` with a couple of Terraform configurations to set up AWS CodeBuild, CodePipeline, and CloudFront. The result is a github webhook that pulls and builds your code, and with a final step that uses a lambda to push the artifact to the publicly hosted s3 bucket, upon which the CloudFront distribution sits behind the Route53 DNS. Because the Lambda is defined in the serverless configuration, you need to run `sls deploy` first, or Terraform won't be able to find the lambda function, aka the last step in the deployment pipeline.
+
+Deploying your backend services is as simple as running `sls deploy`. All the Lambda and API Gateway management is handled by Serverless, which uses CloudFormation under the hood.
+
+The project extends the standard `serverless.yml` with a couple of Terraform configurations to set up AWS CodeBuild, CodePipeline, and CloudFront. The result is a github webhook that triggers a CodePipeline to pull and build your code, with a final step that uses a Lambda to push the artifact to the publicly hosted s3 bucket, upon which the CloudFront distribution sits behind the Route53 DNS. Because the deploy Lambda is defined in the serverless configuration, you need to run `sls deploy` first, or Terraform won't be able to find the lambda function, aka the last step in the deployment pipeline.
 
 Please be advised, this can take a **long** time to set up, as we're setting up SSL for the project and must validate the certs after they are issued by AWS. This is not fast, potentially 30-45 minutes. No, it's not broken. You only have to do it once, so just be patient.
 
@@ -78,11 +91,9 @@ const StyledDiv = styled.div`
 You can then swap the colors to invert your color scheme, though you may want to do this with the theme feature built into styled-components.
 
 ---
-
-```
-npm i -g craftool
-craft {{ AppName }} https://github.com/steph-query/craft-serverless/archive/master.zip
-```
+## TODO:
+- Update the Prompts config to be more dynamic and alter the terraform setup as needed.
+- Figure out the optimal way to automate backend deployment. Find a way to include this step in `buildspec.yml` that doesn't lose the serverless state information in the ephemeral build environment. Probably easy enough to push the metadata to s3 and configure all local environments to point there for the production setup (similar to TFState).
 
 ## General Resources
 
