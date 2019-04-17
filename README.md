@@ -69,7 +69,7 @@ With `styled-components`, you never really need to use stylesheets again. You ca
 Consider the following example:
 ```javascript
 // styles/index.js:
-export default const theme = {
+export const theme = {
   blue: 'rgb(29,31,177)',
   blue2: 'rgb(162,217,218)'
 }
