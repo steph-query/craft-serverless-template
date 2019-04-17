@@ -69,26 +69,24 @@ With `styled-components`, you never really need to use stylesheets again. You ca
 Consider the following example:
 ```javascript
 // styles/index.js:
-export default const style_vars = {
+export default const theme = {
   blue: 'rgb(29,31,177)',
   blue2: 'rgb(162,217,218)'
 }
 ```
+Wrapping your entire app in the `<ThemeProvider theme={theme}> ...children...  </ThemeProvider>` gives you access to your theme values inside any of its descendant components.
 
 ```javascript
 // src/components/someComponent.js
 import styled from 'styled-components';
-import style_vars from '../utils/styles';
 
 const StyledDiv = styled.div`
-  color: ${style_vars.blue};
-  background-color: ${style_vars.blu2};
+  color: ${props.theme.blue};
+  background-color: ${props.theme.blue2};
 `;
 
 // Your compenent renders StyledDiv in its render method
 ```
-
-You can then swap the colors to invert your color scheme, though you may want to do this with the theme feature built into styled-components.
 
 ---
 ## TODO:
